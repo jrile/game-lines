@@ -3,7 +3,8 @@ const Alexa = require("alexa-sdk"); // import the library
 var http = require('http');
 var parseString = require('xml2js').parseString;
 var util = require('util');
-
+var AWS = require('aws-sdk');
+var s3 = new AWS.S3({apiVersion: '2006-03-01'});
 //=========================================================================================================================================
 //TODO: The items below this comment need your attention
 //=========================================================================================================================================
@@ -13,42 +14,32 @@ var util = require('util');
 var APP_ID = undefined;
 
 // =====================================================================================================
-// --------------------------------- Section 1. Data and Text strings  ---------------------------------
+// --------------------------------- Section 1.  and Text strings  ---------------------------------
 // =====================================================================================================
-//TODO: Replace this data with your own.
+//TODO: Replace this  with your own.
 //======================================================================================================
 
-var data=[
-	{firstName:"dave",lastName:"isbitski",title:"Chief Alexa evangelist",cityName:"philadelphia",twitter:"thedavedev",saytwitter:"the dave dev",github:"disbitski",saygithub:"d, isbitski",linkedin:"https://www.linkedin.com/in/davidisbitski",saylinkedin:"david isbitski",joinDate:"October 2015",gender:"m"},
-	{firstName:"paul",lastName:"cutsinger",title:"Head of Voice Design Education on Amazon Alexa",cityName:"seattle",twitter:"paulcutsinger",saytwitter:"paul cutsinger",github:"paulcutsinger",saygithub:"paulcutsinger",linkedin:"https://www.linkedin.com/in/paulcutsinger",saylinkedin:"paul cutsinger",joinDate:"January 2016",gender:"m"},
-	{firstName:"amit",lastName:"jotwani",title:"an Alexa AI and machine learning evangelist",cityName:"new york",twitter:"amit",saytwitter:"amit",github:"ajot",saygithub:"a, jot",linkedin:"https://www.linkedin.com/in/ajotwani",saylinkedin:"a jotwani",joinDate:"February 2016",gender:"m"},
-	{firstName:"jeff",lastName:"blankenburg",title:"an Alexa evangelist",cityName:"columbus",twitter:"jeffblankenburg",saytwitter:"jeff blankenburg",github:"jeffblankenburg",saygithub:"jeffblankenburg",linkedin:"https://www.linkedin.com/in/jeffblankenburg",saylinkedin:"jeff blankenburg",joinDate:"September 2016",gender:"m"},
-	{firstName:"rob",lastName:"mccauley",title:"a Solutions Architect on the Alexa Skills Team",cityName:"boston",twitter:"robmccauley",saytwitter:"rob mccauley",github:"robm26",saygithub:"rob m 26",linkedin:"https://www.linkedin.com/in/robm26",saylinkedin:"rob m 26",joinDate:"February 2016",gender:"m"},
-	{firstName:"memo",lastName:"doring",title:"a Solutions Architect on the Alexa Skills Team",cityName:"seattle",twitter:"memodoring",saytwitter:"memo doring",github:"memodoring",saygithub:"memo doring",linkedin:"https://www.linkedin.com/in/guillermodoring",saylinkedin:"guillermo doring",joinDate:"April 2016",gender:"m"},
-	{firstName:"jen",lastName:"gilbert",title:"a Marketing Manager on the Alexa Skills team",cityName:"seattle",twitter:"thejengil",saytwitter:"the jengil",github:"jengilbert",saygithub:"jen gilbert",linkedin:"https://www.linkedin.com/in/jenpaullgilbert/",saylinkedin:"jen paull gilbert",joinDate:"June 2016",gender:"f"}
-];
 
 //======================================================================================================
 //TODO: Replace these text strings to edit the welcome and help messages
 //======================================================================================================
-
-var skillName = "Alexa Team Lookup";
+var S3_BUCKET_NAME = "gamelines";
+var S3_ODDS_KEY = "gamelines";
+var skillName = "Game Lines";
 
 //This is the welcome message for when a user starts the skill without a specific intent.
-var WELCOME_MESSAGE = "Welcome to " + skillName + "Learn about Alexa Evangelists and Solutions Architects. For example, " + getGenericHelpMessage(data);
+var WELCOME_MESSAGE = "Welcome to " + skillName + ", find the line for an upcoming sport event. For example, " + getGenericHelpMessage();
 
 //This is the message a user will hear when they ask Alexa for help in your skill.
-var HELP_MESSAGE = "I can help you find Alexa Evangelists and Solutions Architects. ";
+var HELP_MESSAGE = "I can help you find spreads for sports events. ";
 
 //This is the message a user will hear when they begin a new search
-var NEW_SEARCH_MESSAGE = getGenericHelpMessage(data);
+var NEW_SEARCH_MESSAGE = getGenericHelpMessage();
 
 //This is the message a user will hear when they ask Alexa for help while in the SEARCH state
-var SEARCH_STATE_HELP_MESSAGE = getGenericHelpMessage(data);
+var SEARCH_STATE_HELP_MESSAGE = getGenericHelpMessage();
 
 var DESCRIPTION_STATE_HELP_MESSAGE = "Here are some things you can say: Tell me more, or give me his or her contact info";
-
-var MULTIPLE_RESULTS_STATE_HELP_MESSAGE = "Sorry, please say the first and last name of the person you'd like to learn more about";
 
 // This is the message use when the decides to end the search
 var SHUTDOWN_MESSAGE = "Ok.";
@@ -64,47 +55,31 @@ var EXIT_SKILL_MESSAGE = "Ok.";
 
 var states = {
 	SEARCHMODE: "_SEARCHMODE",
-	DESCRIPTION: "_DESCRIPTION",
-	MULTIPLE_RESULTS: "_MULTIPLE_RESULTS"
+	DESCRIPTION: "_DESCRIPTION"
 };
 
 const newSessionHandlers = {
 	"LaunchRequest": function() {
 		this.handler.state = states.SEARCHMODE;
-		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage(data));
+		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage());
 	},
-	
 	"SearchByTeamNameIntent": function() {
 		console.log("SEARCH BY TEAM NAME INTENT");
 		this.handler.state = states.SEARCHMODE;
 		this.emitWithState("SearchByTeamNameIntent");
 	},
-	
-	"SearchByNameIntent": function() {
-		console.log("SEARCH INTENT");
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByNameIntent");
-	},
 	"TellMeMoreIntent": function() {
 		this.handler.state = states.SEARCHMODE;
-		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage(data));
-	},
-	"TellMeThisIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByNameIntent");
-	},
-	"SearchByInfoTypeIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByInfoTypeIntent");
+		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage());
 	},
 	"AMAZON.YesIntent": function() {
-		this.emit(":ask", getGenericHelpMessage(data), getGenericHelpMessage(data));
+		this.emit(":ask", getGenericHelpMessage(), getGenericHelpMessage());
 	},
 	"AMAZON.NoIntent": function() {
 		this.emit(":tell", SHUTDOWN_MESSAGE);
 	},
 	"AMAZON.RepeatIntent": function() {
-		this.emit(":ask", HELP_MESSAGE, getGenericHelpMessage(data));
+		this.emit(":ask", HELP_MESSAGE, getGenericHelpMessage());
 	},
 	"AMAZON.StopIntent": function() {
 		this.emit(":tell", EXIT_SKILL_MESSAGE);
@@ -114,11 +89,11 @@ const newSessionHandlers = {
 	},
 	"AMAZON.StartOverIntent": function() {
 		this.handler.state = states.SEARCHMODE;
-		var output = "Ok, starting over." + getGenericHelpMessage(data);
+		var output = "Ok, starting over." + getGenericHelpMessage();
 		this.emit(":ask", output, output);
 	},
 	"AMAZON.HelpIntent": function() {
-		this.emit(":ask", HELP_MESSAGE + getGenericHelpMessage(data), getGenericHelpMessage(data));
+		this.emit(":ask", HELP_MESSAGE + getGenericHelpMessage(), getGenericHelpMessage());
 	},
 	"SessionEndedRequest": function() {
 		this.emit("AMAZON.StopIntent");
@@ -138,11 +113,11 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
 	"AMAZON.RepeatIntent": function() {
 		var output;
 		if(this.attributes.lastSearch){
-			output = this.attributes.lastSearch.lastSpeech;
+			output = this.attributes.lastSearch;
 			console.log("repeating last speech");
 		}
 		else{
-			output = getGenericHelpMessage(data);
+			output = getGenericHelpMessage();
 			console.log("no last speech availble. outputting standard help message.");
 		}
 		this.emit(":ask",output, output);
@@ -168,18 +143,13 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
 		this.emitWithState("TellMeMoreIntent");
 	},
 	"AMAZON.HelpIntent": function() {
-		this.emit(":ask", getGenericHelpMessage(data), getGenericHelpMessage(data));
+		this.emit(":ask", getGenericHelpMessage(), getGenericHelpMessage());
 	},
 	"AMAZON.StopIntent": function() {
 		this.emit(":tell", EXIT_SKILL_MESSAGE);
 	},
 	"AMAZON.CancelIntent": function() {
 		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"AMAZON.StartOverIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		var output = "Ok, starting over." + getGenericHelpMessage(data);
-		this.emit(":ask", output, output);
 	},
 	"SessionEndedRequest": function() {
 		this.emit("AMAZON.StopIntent");
@@ -189,95 +159,14 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
 		this.emit(":ask", SEARCH_STATE_HELP_MESSAGE, SEARCH_STATE_HELP_MESSAGE);
 	}
 });
-var multipleSearchResultsHandlers = Alexa.CreateStateHandler(states.MULTIPLE_RESULTS, {
-
-	"AMAZON.StartOverIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		var output = "Ok, starting over." + getGenericHelpMessage(data);
-		this.emit(":ask", output, output);
-	},
-	"AMAZON.YesIntent": function() {
-		var output = "Hmm. I think you said - yes, but can you please say the name of the person you'd like to learn more about?";
-		this.emit(":ask", output, output);
-	},
-	"AMAZON.NoIntent": function() {
-		this.emit(":tell", SHUTDOWN_MESSAGE);
-	},
-	"AMAZON.RepeatIntent": function() {
-		this.emit(":ask",this.attributes.lastSearch.lastSpeech, this.attributes.lastSearch.lastSpeech);
-	},
-	"SearchByNameIntent": function() {
-		var slots = this.event.request.intent.slots;
-		var firstName = isSlotValid(this.event.request, "firstName");
-		var lastName = isSlotValid(this.event.request, "lastName");
-		var cityName = isSlotValid(this.event.request, "cityName");
-		var infoType = isSlotValid(this.event.request, "infoType");
-
-		console.log("firstName:" + firstName);
-		console.log("firstName:" + lastName);
-		console.log("firstName:" + cityName);
-		console.log("firstName:" + infoType);
-		console.log("Intent Name:" + this.event.request.intent.name);
-
-		var canSearch = figureOutWhichSlotToSearchBy(firstName,lastName,cityName);
-		console.log("Multiple results found. canSearch is set to = " + canSearch);
-		var speechOutput;
-
-		if (canSearch)
-			var searchQuery = slots[canSearch].value;
-		var searchResults = searchDatabase(this.attributes.lastSearch.results, searchQuery, canSearch);
-		var lastSearch;
-		var output;
-
-		if (searchResults.count > 1) { //multiple results found again
-			console.log("multiple results were found again");
-			this.handler.state = states.MULTIPLE_RESULTS;
-			output = this.attributes.lastSearch.lastSpeech;
-			this.emit(":ask",output);
-		} else if (searchResults.count == 1) { //one result found
-			this.attributes.lastSearch = searchResults;
-			lastSearch = this.attributes.lastSearch;
-			this.handler.state = states.DESCRIPTION;
-			output = generateSearchResultsMessage(searchQuery,searchResults.results);
-			this.attributes.lastSearch.lastSpeech = output;
-			this.emit(":ask", output);
-
-		} else { //no match found
-			lastSearch = this.attributes.lastSearch;
-			var listOfPeopleFound = loopThroughArrayOfObjects(lastSearch.results);
-			speechOutput = MULTIPLE_RESULTS_STATE_HELP_MESSAGE + ", " + listOfPeopleFound;
-			this.emit(":ask", speechOutput);
-		}
-	},
-	"SearchByCityIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByCityIntent");
-	},
-	"AMAZON.HelpIntent": function() {
-		this.emit(":ask", MULTIPLE_RESULTS_STATE_HELP_MESSAGE, MULTIPLE_RESULTS_STATE_HELP_MESSAGE);
-	},
-	"AMAZON.StopIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"AMAZON.CancelIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"SessionEndedRequest": function() {
-		this.emit("AMAZON.StopIntent");
-	},
-	"Unhandled": function() {
-		console.log("Unhandled intent in multipleSearchResultsHandlers");
-		this.emit(":ask", MULTIPLE_RESULTS_STATE_HELP_MESSAGE, MULTIPLE_RESULTS_STATE_HELP_MESSAGE);
-	}
-});
 var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTION, {
 	"TellMeMoreIntent": function() {
 		var person;
 		var speechOutput;
 		var repromptSpeech;
 		var cardContent;
-
-		if(this.attributes.lastSearch){
+		// TODO add a 'tell more' that says the odds, moneyline, etc.
+		/*if(this.attributes.lastSearch){
 			person = this.attributes.lastSearch.results[0];
 			cardContent = generateCard(person); //calling the helper function to generate the card content that will be sent to the Alexa app.
 			speechOutput = generateTellMeMoreMessage(person);
@@ -289,44 +178,11 @@ var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTION, {
 			this.emit(":askWithCard", speechOutput, repromptSpeech, cardContent.title, cardContent.body, cardContent.image);
 		}
 		else{
-			speechOutput = getGenericHelpMessage(data);
-			repromptSpeech = getGenericHelpMessage(data);
+			speechOutput = getGenericHelpMessage();
+			repromptSpeech = getGenericHelpMessage();
 			this.handler.state = states.SEARCHMODE;
 			this.emit(":ask", speechOutput, repromptSpeech);
-		}
-	},
-	"TellMeThisIntent": function() {
-		var slots = this.event.request.intent.slots;
-		var person = this.attributes.lastSearch.results[0];
-		var infoType = isSlotValid(this.event.request, "infoType");
-		var speechOutput;
-		var repromptSpeech;
-		var cardContent;
-
-		console.log(isInfoTypeValid("github"));
-
-		if(this.attributes.lastSearch && isInfoTypeValid(infoType)){
-			person =  this.attributes.lastSearch.results[0];
-			cardContent = generateCard(person);
-			speechOutput = generateSpecificInfoMessage(slots,person);
-			repromptSpeech = "Would you like to find another evangelist? Say yes or no";
-			this.handler.state = states.SEARCHMODE;
-			this.attributes.lastSearch.lastSpeech = speechOutput;
-			this.emit(":askWithCard", speechOutput, repromptSpeech, cardContent.title, cardContent.body, cardContent.image);
-		} else {
-			//not a valid slot. no card needs to be set up. respond with simply a voice response.
-			speechOutput = generateSearchHelpMessage(person.gender);
-			repromptSpeech = "You can ask me - what's " + genderize("his-her", person.gender) + " twitter, or give me " + genderize("his-her", person.gender) + " git-hub username";
-			this.attributes.lastSearch.lastSpeech = speechOutput;
-			this.handler.state = states.SEARCHMODE;
-			this.emit(":ask", speechOutput, repromptSpeech);
-		}
-	},
-	"SearchByNameIntent": function() {
-		searchByNameIntentHandler.call(this);
-	},
-	"SearchByCityIntent": function() {
-		searchByCityIntentHandler.call(this);
+		}*/
 	},
 	"AMAZON.HelpIntent": function() {
 		var person = this.attributes.lastSearch.results[0];
@@ -345,407 +201,109 @@ var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTION, {
 		this.emit("TellMeMoreIntent");
 	},
 	"AMAZON.RepeatIntent": function() {
-		this.emit(":ask",this.attributes.lastSearch.lastSpeech, this.attributes.lastSearch.lastSpeech);
-	},
-	"AMAZON.StartOverIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		var output = "Ok, starting over." + getGenericHelpMessage(data);
-		this.emit(":ask", output, output);
+		this.emit(":ask",this.attributes.lastSearch, this.attributes.lastSearch);
 	},
 	"SessionEndedRequest": function() {
 		this.emit("AMAZON.StopIntent");
 	},
 	"Unhandled": function() {
-		var person = this.attributes.lastSearch.results[0];
 		console.log("Unhandled intent in DESCRIPTION state handler");
-		this.emit(":ask", "Sorry, I don't know that" + generateNextPromptMessage(person,"general"), "Sorry, I don't know that" + generateNextPromptMessage(person,"general"));
+		this.emit(":ask", "Sorry, I don't know that.");
 	}
 });
 
 // ------------------------- END of Intent Handlers  ---------------------------------
 
-function searchDatabase(dataset, searchQuery, searchType) {
-	var matchFound = false;
-	var results = [];
-
-	//beginning search
-	for (var i = 0; i < dataset.length; i++) {
-		if (sanitizeSearchQuery(searchQuery) == dataset[i][searchType]) {
-			results.push(dataset[i]);
-			matchFound = true;
-		}
-		if ((i == dataset.length - 1) && (matchFound == false)) {
-			//this means that we are on the last record, and no match was found
-			matchFound = false;
-			console.log("no match was found using " + searchType);
-			//if more than searchable items were provided, set searchType to the next item, and set i=0
-			//ideally you want to start search with lastName, then firstname, and then cityName
-		}
-	}
-	return {
-		count: results.length,
-		results: results
-	};
-}
-
-function figureOutWhichSlotToSearchBy(firstName,lastName,cityName) {
-	if (lastName){
-		console.log("search by lastName");
-		return "lastName";
-	}
-	else if (!lastName && firstName){
-		console.log("search by firstName");
-		return "firstName";
-	}
-	else if (!lastName && !firstName && cityName){
-		console.log("search by cityName");
-		return "cityName";
-	}
-	else{
-		console.log("no valid slot provided. can't search.");
-		return false;
-	}
-}
-
-function getXmlAndSearch(teamOne, teamTwo, betPhrase, sportsEvent) {
-	var xml = getAllLines();
-	console.log("getAllLines", xml);
-	// TODO
-	var results = [{sportsEvent: "football", line: "7.5"}, {sportsEvent: "basketball", line: "12"}];
-	var teamTwo = "Kansas State wildcats";
-	return {"lines": results, "teamTwo": teamTwo};
-}
-
-function searchByTeamNameIntentHandler() {
+function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 	// this should always be present:
 	var teamOne = isSlotValid(this.event.request, "teamOne");
 	
 	var betPhrase = isSlotValid(this.event.request, "betPhrase");
 	var teamTwo = isSlotValid(this.event.request, "teamTwo");
 	var sportsEvent = isSlotValid(this.event.request, "sportEvent");
-	
+	if(t1) { teamOne = t1; }
 	if(teamOne) {
 		console.log("team one:", teamOne);
 		if(betPhrase) {
 			console.log("bet phrase:", betPhrase);
 		}
 		if(teamTwo) {
+			// TODO handle if team one doesn't play team two and vice versa
 			console.log("team two:", teamTwo);
 		}
 		if(sportsEvent) {
+			// TODO eventually add other sports than NFL
 			console.log("sports event:", sportsEvent);
 		}
-		//var results = getXmlAndSearch(teamOne, teamTwo, betPhrase, sportsEvent);
-		//var lines = results.lines;
-		//if(!teamTwo) {
-		//	teamTwo = results.teamTwo;
-		//}
-		console.log("CALLING GETALL LINES");
 		var self = this;
-		getAllLines(teamOne, function(retVal) {
+		getAllLines(teamOne, function(retVal, teamParsed, league) {
 			console.log("searchByTeamNameIntentHandler returning with", retVal);
-			self.emit(":ask", retVal);
+			self.handler.state = states.DESCRIPTION;
+				parseString(retVal, function(err, lines) {
+					console.log("got", lines);
+					if(!lines || !lines.Data || !lines.Data.Leagues) {
+						console.error("No NFL spreads returned!");
+						// TODO
+					}
+					var speech;
+					for(var i = 0; i < lines.Data.Leagues[0].league.length; i++) {
+						var leagueName = lines.Data.Leagues[0].league[i]['$'].IdSport;
+						if(leagueName === league) {
+							for(var j = 0; j < lines.Data.Leagues[0].league[i].game.length; j++) {
+								var game = lines.Data.Leagues[0].league[i].game[j];
+								console.log("game", game);
+								var visitingTeam = game['$']['vtm'];
+								var homeTeam = game['$']['htm'];
+								if(visitingTeam === teamParsed) {
+									var line = game.line[0]['$']['vsprdt'];
+									speech = spreadToSpeech(line, teamParsed, homeTeam, true);
+								} else if(homeTeam === teamParsed) {
+									var line = game.line[0]['$']['hsprdt'];
+									speech = spreadToSpeech(line, teamParsed, visitingTeam, false);
+								}
+							}
+						}
+					}
+					// todo: states here
+					if(!speech) {
+						speech = getCouldntFindError(teamOne);
+					}
+					self.attributes.lastSearch = speech;
+					console.log("Going to return: " + speech);
+					// TODO: set last search info stuffs
+					self.emit(":tell", speech);
+				}); 
+		}, function() {
+			self.emit(":tell", getCouldntFindError(teamOne));
 		});
 	} else {
 		console.log("Don't have team one to search!");
 		this.emit(":ask", generateSearchResultsMessage(searchQuery,false));
 	}
 }
-function searchByNameIntentHandler(){
-	var firstName = isSlotValid(this.event.request, "firstName");
-	var lastName = isSlotValid(this.event.request, "lastName");
-	var cityName = isSlotValid(this.event.request, "cityName");
-	var infoType = isSlotValid(this.event.request, "infoType");
 
-	var canSearch = figureOutWhichSlotToSearchBy(firstName,lastName,cityName);
-	console.log("canSearch is set to = " + canSearch);
 
-	if (canSearch){
-		var searchQuery = this.event.request.intent.slots[canSearch].value;
-		var searchResults = searchDatabase(data, searchQuery, canSearch);
-
-		//saving lastSearch results to the current session
-		var lastSearch = this.attributes.lastSearch = searchResults;
-		var output;
-
-		//saving last intent to session attributes
-		this.attributes.lastSearch.lastIntent = "SearchByNameIntent";
-
-		if (searchResults.count > 1) { //multiple results found
-			console.log("Search complete. Multiple results were found");
-			var listOfPeopleFound = loopThroughArrayOfObjects(lastSearch.results);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results) + listOfPeopleFound + ". Who would you like to learn more about?";
-			this.handler.state = states.MULTIPLE_RESULTS; // change state to MULTIPLE_RESULTS
-			this.attributes.lastSearch.lastSpeech = output;
-			this.emit(":ask", output);
-		} else if (searchResults.count == 1) { //one result found
-			this.handler.state = states.DESCRIPTION; // change state to description
-			console.log("one match was found");
-			if (infoType) {
-				//if a specific infoType was requested, redirect to specificInfoIntent
-				console.log("infoType was provided as well");
-				this.emitWithState("TellMeThisIntent");
-			}
-			else{
-				console.log("no infoType was provided.");
-				output = generateSearchResultsMessage(searchQuery,searchResults.results);
-				this.attributes.lastSearch.lastSpeech = output;
-				this.emit(":ask", output);
-			}
-		}
-		else{//no match found
-			console.log("no match found");
-			console.log("searchQuery was  = " + searchQuery);
-			console.log("searchResults.results was  = " + searchResults);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results);
-			this.attributes.lastSearch.lastSpeech = output;
-			// this.emit(":ask", generateSearchResultsMessage(searchQuery,searchResults.results));
-			this.emit(":ask", output);
-		}
-	}
-	else {
-		console.log("no searchable slot was provided");
-		console.log("searchQuery was  = " + searchQuery);
-		console.log("searchResults.results was  = " + searchResults);
-
-		this.emit(":ask", generateSearchResultsMessage(searchQuery,false));
-	}
-}
-
-function searchByCityIntentHandler(){
-	var slots = this.event.request.intent.slots;
-	var cityName = isSlotValid(this.event.request, "cityName");
-
-	if (cityName){
-		var searchQuery = slots.cityName.value;
-		console.log("will begin search with  " + slots.cityName.value + " in cityName");
-		var searchResults = searchDatabase(data, searchQuery, "cityName");
-
-		//saving lastSearch results to the current session
-		var lastSearch = this.attributes.lastSearch = searchResults;
-		var output;
-
-		//saving last intent to session attributes
-		this.attributes.lastSearch.lastIntent = "SearchByNameIntent";
-
-		if (searchResults.count > 1) { //multiple results found
-			console.log("Search completed by city. Multiple results were found");
-			var listOfPeopleFound = loopThroughArrayOfObjects(lastSearch.results);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results) + listOfPeopleFound + ". Who would you like to learn more about?";
-			this.handler.state = states.MULTIPLE_RESULTS; // change state to MULTIPLE_RESULTS
-			this.attributes.lastSearch.lastSpeech = output;
-			this.emit(":ask", output);
-		} else if (searchResults.count == 1) { //one result found
-			console.log("one match found");
-			this.handler.state = states.DESCRIPTION; // change state to description
-			output = generateSearchResultsMessage(searchQuery,searchResults.results);
-			this.attributes.lastSearch.lastSpeech = output;
-			// this.emit(":ask", generateSearchResultsMessage(searchQuery,searchResults.results));
-			this.emit(":ask", output);
-
-		}
-		else{//no match found
-			console.log("no match found");
-			console.log("searchQuery was  = " + searchQuery);
-			console.log("searchResults.results was  = " + searchResults);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results);
-			this.attributes.lastSearch.lastSpeech = output;
-			// this.emit(":ask", generateSearchResultsMessage(searchQuery,searchResults.results));
-			this.emit(":ask", output);
-
-		}
-	}
-	else {
-		console.log("no searchable slot was provided");
-		console.log("searchQuery was  = " + searchQuery);
-		console.log("searchResults.results was  = " + searchResults);
-
-		this.emit(":ask", generateSearchResultsMessage(searchQuery,false));
-	}
-}
-
-function searchByInfoTypeIntentHandler(){
-	var slots = this.event.request.intent.slots;
-	var firstName = isSlotValid(this.event.request, "firstName");
-	var lastName = isSlotValid(this.event.request, "lastName");
-	var cityName = isSlotValid(this.event.request, "cityName");
-	var infoType = isSlotValid(this.event.request, "infoType");
-
-	var canSearch = figureOutWhichSlotToSearchBy(firstName,lastName,cityName);
-	console.log("canSearch is set to = " + canSearch);
-
-	if (canSearch){
-		var searchQuery = slots[canSearch].value;
-		var searchResults = searchDatabase(data, searchQuery, canSearch);
-
-		//saving lastSearch results to the current session
-		var lastSearch = this.attributes.lastSearch = searchResults;
-		var output;
-
-		//saving last intent to session attributes
-		this.attributes.lastSearch.lastIntent = "SearchByNameIntent";
-
-		if (searchResults.count > 1) { //multiple results found
-			console.log("multiple results were found");
-			var listOfPeopleFound = loopThroughArrayOfObjects(lastSearch.results);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results) + listOfPeopleFound + ". Who would you like to learn more about?";
-			this.handler.state = states.MULTIPLE_RESULTS; // change state to MULTIPLE_RESULTS
-			this.attributes.lastSearch.lastSpeech = output;
-			this.emit(":ask", output);
-		} else if (searchResults.count == 1) { //one result found
-			this.handler.state = states.DESCRIPTION; // change state to description
-			console.log("one match was found");
-			if (infoType) {
-				//if a specific infoType was requested, redirect to specificInfoIntent
-				console.log("infoType was provided as well");
-				var person = this.attributes.lastSearch.results[0];
-				var cardContent = generateCard(person);
-				var speechOutput = generateSpecificInfoMessage(slots,person);
-				var repromptSpeech = "Would you like to find another evangelist? Say yes or no";
-				this.attributes.lastSearch.lastSpeech = speechOutput;
-				this.handler.state = states.SEARCHMODE;
-				this.emit(":askWithCard", speechOutput, repromptSpeech, cardContent.title, cardContent.body, cardContent.image);
-				// this.emitWithState("TellMeThisIntent");
-			}
-			else{
-				console.log("no infoType was provided.");
-				output = generateSearchResultsMessage(searchQuery,searchResults.results);
-				this.attributes.lastSearch.lastSpeech = output;
-				// this.emit(":ask", generateSearchResultsMessage(searchQuery,searchResults.results));
-				this.emit(":ask", output);
-			}
-		}
-		else{//no match found
-			console.log("no match found");
-			console.log("searchQuery was  = " + searchQuery);
-			console.log("searchResults.results was  = " + searchResults);
-			output = generateSearchResultsMessage(searchQuery,searchResults.results);
-			this.attributes.lastSearch.lastSpeech = output;
-			// this.emit(":ask", generateSearchResultsMessage(searchQuery,searchResults.results));
-			this.emit(":ask", output);
-		}
-	}
-	else {
-		console.log("no searchable slot was provided");
-		console.log("searchQuery was  = " + searchQuery);
-		console.log("searchResults.results was  = " + searchResults);
-
-		this.emit(":ask", generateSearchResultsMessage(searchQuery,false));
-	}
-}
 // =====================================================================================================
 // ------------------------------- Section 3. Generating Speech Messages -------------------------------
 // =====================================================================================================
 
-function generateNextPromptMessage(person,mode){
-	var infoTypes = ["git-hub username","twitter handle","linked-in"];
-	var prompt;
+function getGenericHelpMessage(){
+	return "TODO THREE";
+}
 
-	if (mode == "current"){
-		// if the mode is current, we should give more informaiton about the current contact
-		prompt = ". You can say - tell me more, or  tell me " + genderize("his-her", person.gender) + " " + infoTypes[getRandom(0,infoTypes.length-1)];
+function getCouldntFindError(teamName) {
+	if(!teamName) {
+		teamName = "that team.";
+	} else if(!teamName.toLowerCase().substring(0, 4).includes("the")) {
+		teamName = "the " + teamName;
 	}
-	//if the mode is general, we should provide general help information
-	else if (mode == "general"){
-		prompt = ". " + getGenericHelpMessage(data);
-	}
-	return prompt;
-}
-
-function generateSendingCardToAlexaAppMessage(person,mode){
-	var sentence = "I have sent " + person.firstName + "'s contact card to your Alexa app" + generateNextPromptMessage(person,mode);
-	return sentence;
-}
-
-function getTeamMessage(teamOne, teamTwo) {
-	if(teamTwo) {
-		return teamOne + " " + teamTwo;
-	} 
-	return teamOne;
-}
-
-function generateTeamLineResultsMessage(teamOne, teamTwo, results) {
-	var sentence = "";
-	
-	if(results) {
-		if(results.length === 0) {
-			sentence = "Sorry, I couldn't find a line for " + getTeamMessage(teamOne, teamTwo) + ".";
-		} else {
-			for(var i = 0; i < results.length; i++) {
-				var sportEvent = results[i].sportEvent;
-				var line = results[i].sportsEvent;
-				sentence += "The line for the " + getTeamMessage(teamOne, teamTwo) + " " + sportEvent + " game is " + line + ". ";
-			}
-		}
-	} else {
-			sentence = "Sorry, I didn't quite get that. " + getGenericHelpMessage(data);
-	}
-	return sentence;
-}
-
-function generateSearchResultsMessage(searchQuery,results){
-	var sentence;
-	var details;
-	var prompt;
-
-	if (results){
-		switch (true) {
-		case (results.length == 0):
-			sentence = "Hmm. I couldn't find " + searchQuery + ". " + getGenericHelpMessage(data);
-			break;
-		case (results.length == 1):
-			var person = results[0];
-			details = person.firstName + " " + person.lastName + " is " + person.title + ", based out of " + person.cityName;
-			prompt = generateNextPromptMessage(person,"current");
-			sentence = details + prompt;
-			console.log(sentence);
-			break;
-		case (results.length > 1):
-			sentence = "I found " + results.length + " matching results";
-			break;
-		}
-	}
-	else{
-		sentence = "Sorry, I didn't quite get that. " + getGenericHelpMessage(data);
-	}
-	return sentence;
-}
-
-function getGenericHelpMessage(data){
-	var sentences = ["ask - who is " + getRandomName(data),"say - find an evangelist in " + getRandomCity(data)];
-	return "You can " + sentences[getRandom(0,sentences.length-1)];
-}
-
-function generateSearchHelpMessage(gender){
-	var sentence = "Sorry, I don't know that. You can ask me - what's " + genderize("his-her", gender) +" twitter, or give me " + genderize("his-her", gender) + " git-hub username";
-	return sentence;
-}
-
-function generateTellMeMoreMessage(person){
-	var sentence = person.firstName + " joined the Alexa team in " + person.joinDate + ". " + genderize("his-her", person.gender) + " Twitter handle is " + person.saytwitter + " . " + generateSendingCardToAlexaAppMessage(person,"general");
-	return sentence;
-}
-function generateSpecificInfoMessage(slots,person){
-	var infoTypeValue;
-	var sentence;
-
-	if (slots.infoType.value == "git hub"){
-		infoTypeValue = "github";
-		console.log("resetting gith hub to github");
-	}
-	else{
-		console.log("no reset required for github");
-		infoTypeValue = slots.infoType.value;
-	}
-
-	sentence = person.firstName + "'s " + infoTypeValue.toLowerCase() + " is - " + person["say" + infoTypeValue.toLowerCase()] + " . Would you like to find another evangelist? " + getGenericHelpMessage(data);
-	return optimizeForSpeech(sentence);
+	return "Sorry, I couldn't find odds for " + teamName + ".";
 }
 
 exports.handler = function(event, context, callback) {
 	var alexa = Alexa.handler(event, context);
 	alexa.appId = APP_ID;
-	alexa.registerHandlers(newSessionHandlers, startSearchHandlers, descriptionHandlers, multipleSearchResultsHandlers);
+	alexa.registerHandlers(newSessionHandlers, startSearchHandlers, descriptionHandlers);
 	alexa.execute();
 };
 
@@ -755,25 +313,10 @@ exports.handler = function(event, context, callback) {
 // For more helper functions, visit the Alexa cookbook at https://github.com/alexa/alexa-cookbook
 //======================================================================================================
 
-function getRandom(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function getRandomCity(arrayOfStrings) {
-	return arrayOfStrings[getRandom(0, data.length - 1)].cityName;
-}
-
-function getRandomName(arrayOfStrings) {
-	var randomNumber = getRandom(0, data.length - 1);
-	return arrayOfStrings[randomNumber].firstName + " " + arrayOfStrings[randomNumber].lastName;
-}
-
-function titleCase(str) {
-	return str.replace(str[0], str[0].toUpperCase());
-}
-
+// TODO: add team logos
 function generateCard(person) {
-	var cardTitle = "Contact Info for " + titleCase(person.firstName) + " " + titleCase(person.lastName);
+	//var cardTitle = "Contact Info for " + titleCase(person.firstName) + " " + titleCase(person.lastName);
+	var cardTitle = "TODO TWO";	
 	var cardBody = "Twitter: " + "@" + person.twitter + " \n" + "GitHub: " + person.github + " \n" + "LinkedIn: " + person.linkedin;
 	var imageObj = {
 		smallImageUrl: "https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/team-lookup/avatars/" + person.firstName + "._TTH_.jpg",
@@ -784,35 +327,6 @@ function generateCard(person) {
 		"body": cardBody,
 		"image": imageObj
 	};
-}
-
-function loopThroughArrayOfObjects(arrayOfStrings) {
-	var joinedResult = "";
-	// Looping through the each object in the array
-	for (var i = 0; i < arrayOfStrings.length; i++) {
-		//concatenating names (firstName + lastName ) for each item
-		joinedResult = joinedResult + ", " + arrayOfStrings[i].firstName + " " + arrayOfStrings[i].lastName;
-	}
-	return joinedResult;
-}
-
-function genderize(type, gender) {
-	var pronouns ={
-		"m":{"he-she":"he","his-her":"his","him-her":"him"},
-		"f":{"he-she":"she","his-her":"her","him-her":"her"}
-	};
-	return pronouns[gender][type];
-}
-
-function sanitizeSearchQuery(searchQuery){
-	searchQuery = searchQuery.replace(/’s/g, "").toLowerCase();
-	searchQuery = searchQuery.replace(/'s/g, "").toLowerCase();
-	return searchQuery;
-}
-
-function optimizeForSpeech(str){
-	var optimizedString = str.replace("github","git-hub");
-	return optimizedString;
 }
 
 function isSlotValid(request, slotName){
@@ -831,26 +345,36 @@ function isSlotValid(request, slotName){
 	}
 }
 
-function getAllLines(team, callback) {
-	var teamParsed = getTeamName(team); 
-	console.log("teamParsed", teamParsed);
+function updateOdds(teamParsed, successCallback) {
+	var xmlResponse = "";
 	var options = {
 		host : 'lines.bookmaker.eu',
 		method : 'GET',
 		port: 80,
 		headers: {'user-agent': 'node.js'}
-	}
-	var xmlResponse = "";
+	};
 	var req = http.request(options, function(resp) {
 		resp.on('data', function(data) {
 			xmlResponse += data;
 		});
 		resp.on('end', function() {
-			parseString(xmlResponse, function(err, result) {
-				var returnSpeech = findSpread(result, teamParsed, "NFL");
-				console.log("Going to return: " + returnSpeech);
-				callback(returnSpeech);
-			});
+			//parseString(xmlResponse, function(err, result) {
+				//console.log("got", result);
+				var params = {
+					//Body: result,
+					Body: xmlResponse,
+					Bucket:S3_BUCKET_NAME,
+					Key:S3_ODDS_KEY
+				};
+				s3.putObject(params, function(err, data) {
+					if(err) {
+						console.error("Could not save to S3", err, err.stack);
+					} else {
+						console.log("Successfully saved to S3", data);
+					}
+					successCallback(xmlResponse, teamParsed, "NFL");
+				});
+			//});
 
 		});
 	});
@@ -860,30 +384,28 @@ function getAllLines(team, callback) {
 	});
 }
 
-function findSpread(lines, team, league) {
-	if(!lines || !lines.Data || !lines.Data.Leagues) {
-		console.error("No NFL spreads returned!");
+function getAllLines(team, successCallback, teamNotFoundCallback) {
+	var teamParsed = getTeamName(team); 
+	console.log("teamParsed", teamParsed);
+	if(!teamParsed) {
+		teamNotFoundCallback();
 	}
-	for(var i = 0; i < lines.Data.Leagues[0].league.length; i++) {
-		var leagueName = lines.Data.Leagues[0].league[i]['$'].IdSport;
-		if(leagueName === league) {
-			for(var j = 0; j < lines.Data.Leagues[0].league[i].game.length; j++) {
-				var game = lines.Data.Leagues[0].league[i].game[j];
-				console.log("game", game);
-				var visitingTeam = game['$']['vtm'];
-				var homeTeam = game['$']['htm'];
-				if(visitingTeam === team) {
-					var line = game.line[0]['$']['vsprdt'];
-					return spreadToSpeech(line, team, homeTeam, true);
-				} else if(homeTeam === team) {
-					var line = game.line[0]['$']['hsprdt'];
-					return spreadToSpeech(line, team, visitingTeam, false);
-				}
-			}
-			console.log("Couldn't find " + team + ".");
-			return null;
+	// TODO: don't request this every single time
+	var params = {
+		Bucket: S3_BUCKET_NAME,
+		Key: S3_ODDS_KEY
+	};	
+	s3.getObject(params, function(err, data) {
+		if(err) {
+			console.log(err, err.stack);
+			console.log("getting up to date line info");
+			updateOdds(teamParsed, successCallback);
+		} else {
+			console.log("data", data);
+			successCallback(data.Body.toString('ascii'), teamParsed, "NFL");
 		}
-	}
+	});
+
 }
 
 function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad) {
@@ -895,14 +417,6 @@ function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad) {
 	} else {
 		return "The " + teamOne + " are " + spread + " point underdogs against the " + teamTwo + " " + where + ".";
 	}
-}
-function isInArray(value, array) {
-	return array.indexOf(value) > -1;
-}
-
-function isInfoTypeValid(infoType){
-	var validTypes = ["git hub","github","twitter","linkedin"];
-	return isInArray(infoType,validTypes);
 }
 
 function getTeamName(input) {
@@ -935,8 +449,8 @@ function getTeamName(input) {
 		return "Detroit Lions";
 	} else if(i.includes("green bay") || i.includes("packers")) {
 		return "Green Bay Packers";
-	} else if(i.includes("houston") || i.includes("texans")) {
-		return "Houstan Texans";
+	} else if(i.includes("houston") || i.includes("texans") || i.includes("texas")) {
+		return "Houston Texans";
 	} else if(i.includes("indianapolis") || i.includes("colts")) {
 		return "Indianapolis Colts";
 	} else if(i.includes("jacksonville") || i.includes("jaguars")) {
@@ -973,7 +487,7 @@ function getTeamName(input) {
 		return "Seattle Seahawks";
 	} else if(i.includes("tampa") || i.includes("bay") || i.includes("bucs") || i.includes("bucks") || i.includes("buccaneers")) {
 		return "Tampa Bay Buccaneers";
-	} else if(i.includes("tennessee") || i.include("titans")) {
+	} else if(i.includes("tennessee") || i.includes("titans")) {
 		return "Tennessee Titans";
 	} else if(i.includes("washington") || i.includes("redskins") || i.includes("racists")) {
 		return "Washington Redskins";
