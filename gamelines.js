@@ -25,6 +25,7 @@ var APP_ID = undefined;
 //======================================================================================================
 var S3_BUCKET_NAME = "gamelines";
 var S3_ODDS_KEY = "gamelines";
+var HOURS_TO_KEEP_ODDS = 3;
 var skillName = "Game Lines";
 
 //This is the welcome message for when a user starts the skill without a specific intent.
@@ -112,8 +113,8 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
 	},
 	"AMAZON.RepeatIntent": function() {
 		var output;
-		if(this.attributes.lastSearch){
-			output = this.attributes.lastSearch;
+		if(this.attributes.lastSearch && this.attributes.lastSearch.speech){
+			output = this.attributes.lastSearch.speech;
 			console.log("repeating last speech");
 		}
 		else{
@@ -184,10 +185,6 @@ var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTION, {
 			this.emit(":ask", speechOutput, repromptSpeech);
 		}*/
 	},
-	"AMAZON.HelpIntent": function() {
-		var person = this.attributes.lastSearch.results[0];
-		this.emit(":ask", generateNextPromptMessage(person,"current"), generateNextPromptMessage(person,"current"));
-	},
 	"AMAZON.StopIntent": function() {
 		this.emit(":tell", EXIT_SKILL_MESSAGE);
 	},
@@ -245,8 +242,10 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 						console.error("No NFL spreads returned!");
 						// TODO
 					}
+					var found = false;
+					var result = {};
 					var speech;
-					for(var i = 0; i < lines.Data.Leagues[0].league.length; i++) {
+					for(var i = 0; i < lines.Data.Leagues[0].league.length && !found; i++) {
 						var leagueName = lines.Data.Leagues[0].league[i]['$'].IdSport;
 						if(leagueName === league) {
 							for(var j = 0; j < lines.Data.Leagues[0].league[i].game.length; j++) {
@@ -255,11 +254,26 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 								var visitingTeam = game['$']['vtm'];
 								var homeTeam = game['$']['htm'];
 								if(visitingTeam === teamParsed) {
-									var line = game.line[0]['$']['vsprdt'];
+									var line = result['line'] = game.line[0]['$']['vsprdt'];
 									speech = spreadToSpeech(line, teamParsed, homeTeam, true);
+									result['teamOneML'] = game.line[0]['$']['voddsh'];
+									result['teamOneOdds'] = game.line[0]['$']['vsprdoddst'];
+									result['teamTwoML'] = game.line[0]['$']['hoddsh'];
+									result['teamTwoOdds'] = game.line[0]['$']['hsprdoddst'];
+									found = true;									
 								} else if(homeTeam === teamParsed) {
-									var line = game.line[0]['$']['hsprdt'];
+									var line = result['line'] = game.line[0]['$']['hsprdt'];
 									speech = spreadToSpeech(line, teamParsed, visitingTeam, false);
+									result['teamOneML'] = game.line[0]['$']['hoddsh'];
+									result['teamOneOdds'] = game.line[0]['$']['hsprdoddst'];
+									result['teamTwoML'] = game.line[0]['$']['voddsh'];
+									result['teamTwoOdds'] = game.line[0]['$']['vsprdoddst'];
+									found = true;		
+								}
+
+								if(found) {
+									result['ou'] = game.line[0]['$']['unt'];
+									break;
 								}
 							}
 						}
@@ -268,7 +282,8 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 					if(!speech) {
 						speech = getCouldntFindError(teamOne);
 					}
-					self.attributes.lastSearch = speech;
+					self.attributes.lastSearch = result;
+					self.attributes.lastSearch.speech = speech;
 					console.log("Going to return: " + speech);
 					// TODO: set last search info stuffs
 					self.emit(":tell", speech);
@@ -385,7 +400,7 @@ function updateOdds(teamParsed, successCallback) {
 }
 
 function getAllLines(team, successCallback, teamNotFoundCallback) {
-	var teamParsed = getTeamName(team); 
+	var teamParsed = getNFLTeamName(team); 
 	console.log("teamParsed", teamParsed);
 	if(!teamParsed) {
 		teamNotFoundCallback();
@@ -402,7 +417,17 @@ function getAllLines(team, successCallback, teamNotFoundCallback) {
 			updateOdds(teamParsed, successCallback);
 		} else {
 			console.log("data", data);
-			successCallback(data.Body.toString('ascii'), teamParsed, "NFL");
+			var staleOdds = new Date(data.LastModified);
+			staleOdds.setHours(staleOdds.getHours() + HOURS_TO_KEEP_ODDS);
+			var timestamp = new Date();
+			if(timestamp > staleOdds) {
+				// odds are HOURS_TO_KEEP_ODDS hours old, update them.
+				console.log("Odds were last updated: " + data.LastModified + ", timestamp now: " + timestamp + ", greater than " + HOURS_TO_KEEP_ODDS + ", updating.");
+				updateOdds(teamParsed, successCallback);
+			} else {
+				console.log("Odds were last updated: " + data.LastModified + ", timestamp now: " + timestamp + ", no need to update.");
+				successCallback(data.Body.toString('ascii'), teamParsed, "NFL");
+			}
 		}
 	});
 
@@ -419,8 +444,8 @@ function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad) {
 	}
 }
 
-function getTeamName(input) {
-	console.log("getTeamName", input);
+function getNFLTeamName(input) {
+	console.log("getNFLTeamName", input);
 	if(!input) {
 		return null;
 	}
@@ -495,4 +520,9 @@ function getTeamName(input) {
 		return null;
 	}	
 }
+
+function getNcaaTeam() {
+
+}
+
 //getAllLines('steelers');
