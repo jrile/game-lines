@@ -5,24 +5,10 @@ var parseString = require('xml2js').parseString;
 var util = require('util');
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3({apiVersion: '2006-03-01'});
-//=========================================================================================================================================
-//TODO: The items below this comment need your attention
-//=========================================================================================================================================
 
-//Replace with your app ID (OPTIONAL).  You can find this value at the top of your skill's page on http://developer.amazon.com.
-//Make sure to enclose your value in quotes, like this:  var APP_ID = "amzn1.ask.skill.bb4045e6-b3e8-4133-b650-72923c5980f1";
-var APP_ID = undefined;
-
-// =====================================================================================================
-// --------------------------------- Section 1.  and Text strings  ---------------------------------
-// =====================================================================================================
-//TODO: Replace this  with your own.
-//======================================================================================================
+var APP_ID = "amzn1.ask.skill.b012474e-0a43-4bf7-95a5-ca1496fe65fd";
 
 
-//======================================================================================================
-//TODO: Replace these text strings to edit the welcome and help messages
-//======================================================================================================
 var S3_BUCKET_NAME = "gamelines";
 var S3_ODDS_KEY = "gamelines";
 var HOURS_TO_KEEP_ODDS = 3;
@@ -40,8 +26,6 @@ var NEW_SEARCH_MESSAGE = getGenericHelpMessage();
 //This is the message a user will hear when they ask Alexa for help while in the SEARCH state
 var SEARCH_STATE_HELP_MESSAGE = getGenericHelpMessage();
 
-var DESCRIPTION_STATE_HELP_MESSAGE = "Here are some things you can say: Tell me more, or give me his or her contact info";
-
 // This is the message use when the decides to end the search
 var SHUTDOWN_MESSAGE = "Ok.";
 
@@ -54,32 +38,16 @@ var EXIT_SKILL_MESSAGE = "Ok.";
 // CAUTION: Editing anything below this line might break your skill.
 //======================================================================================================
 
-var states = {
-	SEARCHMODE: "_SEARCHMODE",
-	DESCRIPTION: "_DESCRIPTION"
-};
 
 const newSessionHandlers = {
 	"LaunchRequest": function() {
-		this.handler.state = states.SEARCHMODE;
 		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage());
 	},
 	"SearchByTeamNameIntent": function() {
-		console.log("SEARCH BY TEAM NAME INTENT");
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByTeamNameIntent");
-	},
-	"TellMeMoreIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		this.emit(":ask", WELCOME_MESSAGE, getGenericHelpMessage());
-	},
-	"AMAZON.YesIntent": function() {
-		this.emit(":ask", getGenericHelpMessage(), getGenericHelpMessage());
-	},
-	"AMAZON.NoIntent": function() {
-		this.emit(":tell", SHUTDOWN_MESSAGE);
+		searchByTeamNameIntentHandler.call(this);
 	},
 	"AMAZON.RepeatIntent": function() {
+		console.log("do we have old info here???", this.attributes.lastSearch);
 		this.emit(":ask", HELP_MESSAGE, getGenericHelpMessage());
 	},
 	"AMAZON.StopIntent": function() {
@@ -88,69 +56,8 @@ const newSessionHandlers = {
 	"AMAZON.CancelIntent": function() {
 		this.emit(":tell", EXIT_SKILL_MESSAGE);
 	},
-	"AMAZON.StartOverIntent": function() {
-		this.handler.state = states.SEARCHMODE;
-		var output = "Ok, starting over." + getGenericHelpMessage();
-		this.emit(":ask", output, output);
-	},
 	"AMAZON.HelpIntent": function() {
-		this.emit(":ask", HELP_MESSAGE + getGenericHelpMessage(), getGenericHelpMessage());
-	},
-	"SessionEndedRequest": function() {
-		this.emit("AMAZON.StopIntent");
-	},
-	"Unhandled": function() {
-		this.handler.state = states.SEARCHMODE;
-		this.emitWithState("SearchByNameIntent");
-	}
-};
-var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
-	"AMAZON.YesIntent": function() {
-		this.emit(":ask", NEW_SEARCH_MESSAGE, NEW_SEARCH_MESSAGE);
-	},
-	"AMAZON.NoIntent": function() {
-		this.emit(":tell", SHUTDOWN_MESSAGE);
-	},
-	"AMAZON.RepeatIntent": function() {
-		var output;
-		if(this.attributes.lastSearch && this.attributes.lastSearch.speech){
-			output = this.attributes.lastSearch.speech;
-			console.log("repeating last speech");
-		}
-		else{
-			output = getGenericHelpMessage();
-			console.log("no last speech availble. outputting standard help message.");
-		}
-		this.emit(":ask",output, output);
-	},
-	"SearchByTeamNameIntent": function() {
-		searchByTeamNameIntentHandler.call(this);
-	},
-	"SearchByNameIntent": function() {
-		searchByNameIntentHandler.call(this);
-	},
-	"SearchByCityIntent": function() {
-		searchByCityIntentHandler.call(this);
-	},
-	"SearchByInfoTypeIntent": function() {
-		searchByInfoTypeIntentHandler.call(this);
-	},
-	"TellMeThisIntent": function() {
-		this.handler.state = states.DESCRIPTION;
-		this.emitWithState("TellMeThisIntent");
-	},
-	"TellMeMoreIntent": function() {
-		this.handler.state = states.DESCRIPTION;
-		this.emitWithState("TellMeMoreIntent");
-	},
-	"AMAZON.HelpIntent": function() {
-		this.emit(":ask", getGenericHelpMessage(), getGenericHelpMessage());
-	},
-	"AMAZON.StopIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"AMAZON.CancelIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
+		this.emit(":ask", HELP_MESSAGE + "For example, " + getGenericHelpMessage(), getGenericHelpMessage());
 	},
 	"SessionEndedRequest": function() {
 		this.emit("AMAZON.StopIntent");
@@ -159,71 +66,20 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
 		console.log("Unhandled intent in startSearchHandlers");
 		this.emit(":ask", SEARCH_STATE_HELP_MESSAGE, SEARCH_STATE_HELP_MESSAGE);
 	}
-});
-var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTION, {
-	"TellMeMoreIntent": function() {
-		var person;
-		var speechOutput;
-		var repromptSpeech;
-		var cardContent;
-		// TODO add a 'tell more' that says the odds, moneyline, etc.
-		/*if(this.attributes.lastSearch){
-			person = this.attributes.lastSearch.results[0];
-			cardContent = generateCard(person); //calling the helper function to generate the card content that will be sent to the Alexa app.
-			speechOutput = generateTellMeMoreMessage(person);
-			repromptSpeech = "Would you like to find another evangelist? Say yes or no";
-
-			console.log("the contact you're trying to find more info about is " + person.firstName);
-			this.handler.state = states.SEARCHMODE;
-			this.attributes.lastSearch.lastSpeech = speechOutput;
-			this.emit(":askWithCard", speechOutput, repromptSpeech, cardContent.title, cardContent.body, cardContent.image);
-		}
-		else{
-			speechOutput = getGenericHelpMessage();
-			repromptSpeech = getGenericHelpMessage();
-			this.handler.state = states.SEARCHMODE;
-			this.emit(":ask", speechOutput, repromptSpeech);
-		}*/
-	},
-	"AMAZON.StopIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"AMAZON.CancelIntent": function() {
-		this.emit(":tell", EXIT_SKILL_MESSAGE);
-	},
-	"AMAZON.NoIntent": function() {
-		this.emit(":tell", SHUTDOWN_MESSAGE);
-	},
-	"AMAZON.YesIntent": function() {
-		this.emit("TellMeMoreIntent");
-	},
-	"AMAZON.RepeatIntent": function() {
-		this.emit(":ask",this.attributes.lastSearch, this.attributes.lastSearch);
-	},
-	"SessionEndedRequest": function() {
-		this.emit("AMAZON.StopIntent");
-	},
-	"Unhandled": function() {
-		console.log("Unhandled intent in DESCRIPTION state handler");
-		this.emit(":ask", "Sorry, I don't know that.");
-	}
-});
+};
 
 // ------------------------- END of Intent Handlers  ---------------------------------
 
-function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
+function searchByTeamNameIntentHandler() {
 	// this should always be present:
+	console.log("request = "+JSON.stringify(this.event.request)); //uncomment if you want to see the request
 	var teamOne = isSlotValid(this.event.request, "teamOne");
 	
-	var betPhrase = isSlotValid(this.event.request, "betPhrase");
 	var teamTwo = isSlotValid(this.event.request, "teamTwo");
 	var sportsEvent = isSlotValid(this.event.request, "sportEvent");
-	if(t1) { teamOne = t1; }
+
 	if(teamOne) {
 		console.log("team one:", teamOne);
-		if(betPhrase) {
-			console.log("bet phrase:", betPhrase);
-		}
 		if(teamTwo) {
 			// TODO handle if team one doesn't play team two and vice versa
 			console.log("team two:", teamTwo);
@@ -233,9 +89,8 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 			console.log("sports event:", sportsEvent);
 		}
 		var self = this;
-		getAllLines(teamOne, function(retVal, teamParsed, league) {
+		getAllLines(teamOne, function(retVal, team, league) {
 			console.log("searchByTeamNameIntentHandler returning with", retVal);
-			self.handler.state = states.DESCRIPTION;
 				parseString(retVal, function(err, lines) {
 					console.log("got", lines);
 					if(!lines || !lines.Data || !lines.Data.Leagues) {
@@ -243,7 +98,8 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 						// TODO
 					}
 					var found = false;
-					var result = {};
+					var result = {"teamOne" : team};
+					var teamParsed = team['name'];
 					var speech;
 					for(var i = 0; i < lines.Data.Leagues[0].league.length && !found; i++) {
 						var leagueName = lines.Data.Leagues[0].league[i]['$'].IdSport;
@@ -255,7 +111,12 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 								var homeTeam = game['$']['htm'];
 								if(visitingTeam === teamParsed) {
 									var line = result['line'] = game.line[0]['$']['vsprdt'];
-									speech = spreadToSpeech(line, teamParsed, homeTeam, true);
+									if(line === '') {
+										speech = noSpread(teamParsed, homeTeam);
+									} else {
+										speech = spreadToSpeech(line, teamParsed, homeTeam, true);
+									}
+									result['teamTwo']  = game.line[0]['$']['htm'];
 									result['teamOneML'] = game.line[0]['$']['voddsh'];
 									result['teamOneOdds'] = game.line[0]['$']['vsprdoddst'];
 									result['teamTwoML'] = game.line[0]['$']['hoddsh'];
@@ -263,7 +124,12 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 									found = true;									
 								} else if(homeTeam === teamParsed) {
 									var line = result['line'] = game.line[0]['$']['hsprdt'];
-									speech = spreadToSpeech(line, teamParsed, visitingTeam, false);
+									if(line === '') {
+										speech = noSpread(teamParsed, visitingTeam);
+									} else {
+										speech = spreadToSpeech(line, teamParsed, visitingTeam, false);
+									}
+									result['teamTwo']  = game.line[0]['$']['vtm'];
 									result['teamOneML'] = game.line[0]['$']['hoddsh'];
 									result['teamOneOdds'] = game.line[0]['$']['hsprdoddst'];
 									result['teamTwoML'] = game.line[0]['$']['voddsh'];
@@ -273,27 +139,44 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 
 								if(found) {
 									result['ou'] = game.line[0]['$']['unt'];
+									if(result['ou']) {
+										speech += "The over under is at " + result['ou'] + ". ";
+									}
+									// todo: TMI?
+									//if(result['teamOneML'] && result['teamTwoML']) {
+									//	speech += teamParsed + " moneyline odds are " + result['teamOneML'] + ". ";
+									//	speech += result['teamTwo'] + " moneyline odds are " + result['teamTwoML'] + ". ";
+									//}
 									break;
 								}
 							}
 						}
 					}
-					// todo: states here
 					if(!speech) {
 						speech = getCouldntFindError(teamOne);
 					}
 					self.attributes.lastSearch = result;
 					self.attributes.lastSearch.speech = speech;
 					console.log("Going to return: " + speech);
-					// TODO: set last search info stuffs
-					self.emit(":tell", speech);
+// todo comment?
+					var card = {
+						"type" : "standard",
+						"title" : teamParsed + " odds",
+						"text" : speech.replace(". ", ".\n"),
+						"image" : {
+							"smallImageUrl" : team['img'],
+							"largeImageUrl" : team['img']
+						}
+					};
+
+					self.emit(":tellWithCard", speech, teamParsed + " odds", speech.replace(". ", ".\n"), team['img']);
 				}); 
 		}, function() {
 			self.emit(":tell", getCouldntFindError(teamOne));
 		});
 	} else {
 		console.log("Don't have team one to search!");
-		this.emit(":ask", generateSearchResultsMessage(searchQuery,false));
+		this.emit(":ask", HELP_MESSAGE + "For example, " + getGenericHelpMessage());
 	}
 }
 
@@ -303,7 +186,7 @@ function searchByTeamNameIntentHandler(/*for testing only!*/ t1) {
 // =====================================================================================================
 
 function getGenericHelpMessage(){
-	return "TODO THREE";
+	return "you can ask for 'the steelers,' or 'Pittsburgh.'";
 }
 
 function getCouldntFindError(teamName) {
@@ -318,35 +201,12 @@ function getCouldntFindError(teamName) {
 exports.handler = function(event, context, callback) {
 	var alexa = Alexa.handler(event, context);
 	alexa.appId = APP_ID;
-	alexa.registerHandlers(newSessionHandlers, startSearchHandlers, descriptionHandlers);
+	alexa.registerHandlers(newSessionHandlers);
 	alexa.execute();
 };
 
-// =====================================================================================================
-// ------------------------------------ Section 4. Helper Functions  -----------------------------------
-// =====================================================================================================
-// For more helper functions, visit the Alexa cookbook at https://github.com/alexa/alexa-cookbook
-//======================================================================================================
-
-// TODO: add team logos
-function generateCard(person) {
-	//var cardTitle = "Contact Info for " + titleCase(person.firstName) + " " + titleCase(person.lastName);
-	var cardTitle = "TODO TWO";	
-	var cardBody = "Twitter: " + "@" + person.twitter + " \n" + "GitHub: " + person.github + " \n" + "LinkedIn: " + person.linkedin;
-	var imageObj = {
-		smallImageUrl: "https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/team-lookup/avatars/" + person.firstName + "._TTH_.jpg",
-		largeImageUrl: "https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/team-lookup/avatars/" + person.firstName + "._TTH_.jpg",
-	};
-	return {
-		"title": cardTitle,
-		"body": cardBody,
-		"image": imageObj
-	};
-}
-
 function isSlotValid(request, slotName){
 	var slot = request.intent.slots[slotName];
-	console.log("request = "+JSON.stringify(request)); //uncomment if you want to see the request
 	var slotValue;
 
 	//if we have a slot, get the text and store it into speechOutput
@@ -360,7 +220,7 @@ function isSlotValid(request, slotName){
 	}
 }
 
-function updateOdds(teamParsed, successCallback) {
+function updateOdds(team, successCallback) {
 	var xmlResponse = "";
 	var options = {
 		host : 'lines.bookmaker.eu',
@@ -368,29 +228,24 @@ function updateOdds(teamParsed, successCallback) {
 		port: 80,
 		headers: {'user-agent': 'node.js'}
 	};
-	var req = http.request(options, function(resp) {
+	var req = http.request(options, function(resp) { // get odds in XML from sportsbook XML endpoint
 		resp.on('data', function(data) {
 			xmlResponse += data;
 		});
 		resp.on('end', function() {
-			//parseString(xmlResponse, function(err, result) {
-				//console.log("got", result);
-				var params = {
-					//Body: result,
-					Body: xmlResponse,
-					Bucket:S3_BUCKET_NAME,
-					Key:S3_ODDS_KEY
-				};
-				s3.putObject(params, function(err, data) {
-					if(err) {
-						console.error("Could not save to S3", err, err.stack);
-					} else {
-						console.log("Successfully saved to S3", data);
-					}
-					successCallback(xmlResponse, teamParsed, "NFL");
-				});
-			//});
-
+			var params = {
+				Body: xmlResponse,
+				Bucket:S3_BUCKET_NAME,
+				Key:S3_ODDS_KEY
+			};
+			s3.putObject(params, function(err, data) { // store plain XML in S3 for later retrieval.
+				if(err) {
+					console.error("Could not save to S3", err, err.stack);
+				} else {
+					console.log("Successfully saved to S3", data);
+				}
+				successCallback(xmlResponse, team, "NFL");
+			});
 		});
 	});
 	req.end();
@@ -400,12 +255,13 @@ function updateOdds(teamParsed, successCallback) {
 }
 
 function getAllLines(team, successCallback, teamNotFoundCallback) {
-	var teamParsed = getNFLTeamName(team); 
+	var teamObj = getNFLTeamName(team); 
+	var teamParsed = teamObj ? teamObj['name'] : null;
 	console.log("teamParsed", teamParsed);
 	if(!teamParsed) {
 		teamNotFoundCallback();
 	}
-	// TODO: don't request this every single time
+
 	var params = {
 		Bucket: S3_BUCKET_NAME,
 		Key: S3_ODDS_KEY
@@ -414,7 +270,7 @@ function getAllLines(team, successCallback, teamNotFoundCallback) {
 		if(err) {
 			console.log(err, err.stack);
 			console.log("getting up to date line info");
-			updateOdds(teamParsed, successCallback);
+			updateOdds(teamObj, successCallback);
 		} else {
 			console.log("data", data);
 			var staleOdds = new Date(data.LastModified);
@@ -423,10 +279,10 @@ function getAllLines(team, successCallback, teamNotFoundCallback) {
 			if(timestamp > staleOdds) {
 				// odds are HOURS_TO_KEEP_ODDS hours old, update them.
 				console.log("Odds were last updated: " + data.LastModified + ", timestamp now: " + timestamp + ", greater than " + HOURS_TO_KEEP_ODDS + ", updating.");
-				updateOdds(teamParsed, successCallback);
+				updateOdds(teamObj, successCallback);
 			} else {
 				console.log("Odds were last updated: " + data.LastModified + ", timestamp now: " + timestamp + ", no need to update.");
-				successCallback(data.Body.toString('ascii'), teamParsed, "NFL");
+				successCallback(data.Body.toString('ascii'), teamObj, "NFL");
 			}
 		}
 	});
@@ -434,14 +290,20 @@ function getAllLines(team, successCallback, teamNotFoundCallback) {
 }
 
 function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad) {
+	console.log("spreadToSpeech");
+	console.log(spread);
 	var where = teamOneOnTheRoad ? "on the road" : "at home";
-	if(spread === 0) {
-		return "The " + teamOne + " are at even odds against the " + teamTwo + " " + where + ".";
+	if(spread === '0') {
+		return "The " + teamOne + " are at even odds against the " + teamTwo + " " + where + ". ";
 	} else if(spread < 0) {
-		return "The " + teamOne + " are " + (spread * -1) + " point favorites against the " + teamTwo + " " + where + ".";
+		return "The " + teamOne + " are " + (spread * -1) + " point favorites against the " + teamTwo + " " + where + ". ";
 	} else {
-		return "The " + teamOne + " are " + spread + " point underdogs against the " + teamTwo + " " + where + ".";
+		return "The " + teamOne + " are " + spread + " point underdogs against the " + teamTwo + " " + where + ". ";
 	}
+}
+
+function noSpread(teamOne, teamTwo) {
+	return "We don't have odds for the " + teamOne + " against the " + teamTwo + " yet, please check again later. ";
 }
 
 function getNFLTeamName(input) {
@@ -451,78 +313,72 @@ function getNFLTeamName(input) {
 	}
 	var i = input.toLowerCase();
 	if(i.includes("arizona") || i.includes("cardinals")) {
-		return "Arizona Cardinals";
+		return {name: "Arizona Cardinals", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'};
 	} else if(i.includes("atlanta") || i.includes("falcons")) {
-		return "Atlanta Falcons";
+		return {name: "Atlanta Falcons", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/atl.png&h=700&w=700'};
 	} else if(i.includes("baltimore") || i.includes("ravens")) {
-		return "Baltimore Ravens";
+		return {name: "Baltimore Ravens", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/bal.png&h=700&w=700'};
 	} else if(i.includes("buffalo") || i.includes("bills")) {
-		return "Buffalo Bills";
+		return {name: "Buffalo Bills", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/buf.png&h=700&w=700'};
 	} else if(i.includes("carolina") || i.includes("panthers")) {
-		return "Carolina Panthers";
+		return {name: "Carolina Panthers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'};
 	} else if(i.includes("chicago") || i.includes("bears")) {
-		return "Chicago Bears";
+		return {name: "Chicago Bears", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/chi.png&h=700&w=700'};
 	} else if(i.includes("cincinatti") || i.includes("bengals")) {
-		return "Cincinatti Bengals";
+		return {name: "Cincinatti Bengals", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cin.png&h=700&w=700'};
 	} else if(i.includes("cleveland") || i.includes("browns")) {
-		return "Cleveland Browns";
+		return {name: "Cleveland Browns", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cle.png&h=700&w=700'};
 	} else if(i.includes("dallas") || i.includes("cowboys")) {
-		return "Dallas Cowboys";
+		return {name: "Dallas Cowboys", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/dal.png&h=700&w=700'};
 	} else if(i.includes("denver") || i.includes("broncos")) {
-		return "Denver Broncos";
+		return {name: "Denver Broncos", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/den.png&h=700&w=700'};
 	} else if(i.includes("detroit") || i.includes("lions")) {
-		return "Detroit Lions";
+		return {name: "Detroit Lions", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/det.png&h=700&w=700'};
 	} else if(i.includes("green bay") || i.includes("packers")) {
-		return "Green Bay Packers";
+		return {name: "Green Bay Packers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/gb.png&h=700&w=700'};
 	} else if(i.includes("houston") || i.includes("texans") || i.includes("texas")) {
-		return "Houston Texans";
+		return {name: "Houston Texans", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'};
 	} else if(i.includes("indianapolis") || i.includes("colts")) {
-		return "Indianapolis Colts";
+		return {name: "Indianapolis Colts", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ind.png&h=700&w=700'};
 	} else if(i.includes("jacksonville") || i.includes("jaguars")) {
-		return "Jacksonville Jaguars";
+		return {name: "Jacksonville Jaguars", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/jax.png&h=700&w=700'};
 	} else if(i.includes("kansas") || i.includes("chiefs")) {
-		return "Kansas City Chiefs";
+		return {name: "Kansas City Chiefs", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/kc.png&h=700&w=700'};
 	} else if(i.includes("chargers")) {
-		return "Los Angeles Chargers";
+		return {name: "Los Angeles Chargers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/lac.png&h=700&w=700'};
 	} else if(i.includes("rams")) {
-		return "Los Angeles Rams";
+		return {name: "Los Angeles Rams", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'};
 	} else if(i.includes("miami") || i.includes("dolphins")) {
-		return "Miami Dolphins";
+		return {name: "Miami Dolphins", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/mia.png&h=700&w=700'};
 	} else if(i.includes("minnesota") || i.includes("vikings")) {
-		return "Minnesota Vikings";
+		return {name: "Minnesota Vikings", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/min.png&h=700&w=700'};
 	} else if(i.includes("england") || i.includes("patriots")) {
-		return "New England Patriots";
+		return {name: "New England Patriots", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ne.png&h=700&w=700'};
 	} else if(i.includes("orleans") || i.includes("saints")) {
-		return "New Orleans Saints";
+		return {name: "New Orleans Saints", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/no.png&h=700&w=700'};
 	} else if(i.includes("giants")) {
-		return "New York Giants";
+		return {name: "New York Giants", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyg.png&h=700&w=700'};
 	} else if(i.includes("jets")) {
-		return "New York Jets";
+		return {name: "New York Jets", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyj.png&h=700&w=700'};
 	} else if(i.includes("oakland") || i.includes("raiders")) {
-		return "Oakland Raiders";
+		return {name: "Oakland Raiders", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/oak.png&h=700&w=700'};
 	} else if(i.includes("philadelphia") || i.includes("eagles")) {
-		return "Philadelphia Eagles";
+		return {name: "Philadelphia Eagles", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/phi.png&h=700&w=700'};
 	} else if(i.includes("pittsburgh") || i.includes("steelers")) {
-		return "Pittsburgh Steelers";
+		return {name: "Pittsburgh Steelers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/pit.png&h=700&w=700'};
 	} 
 	// TODO: test this
 	else if(i.includes("san") || i.includes("francisco") || i.includes("forty niners")) {
-		return "San Francisco 49ers";
+		return {name: "San Francisco 49ers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sf.png&h=700&w=700'};
 	} else if(i.includes("seattle") || i.includes("seahawks")) {
-		return "Seattle Seahawks";
+		return {name: "Seattle Seahawks", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sea.png&h=700&w=700'};
 	} else if(i.includes("tampa") || i.includes("bay") || i.includes("bucs") || i.includes("bucks") || i.includes("buccaneers")) {
-		return "Tampa Bay Buccaneers";
+		return {name: "Tampa Bay Buccaneers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/tb.png&h=700&w=700'};
 	} else if(i.includes("tennessee") || i.includes("titans")) {
-		return "Tennessee Titans";
+		return {name: "Tennessee Titans", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ten.png&h=700&w=700'};
 	} else if(i.includes("washington") || i.includes("redskins") || i.includes("racists")) {
-		return "Washington Redskins";
+		return {name: "Washington Redskins", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/was.png&h=700&w=700'};
 	} else {
 		return null;
 	}	
 }
-
-function getNcaaTeam() {
-
-}
-
-//getAllLines('steelers');
