@@ -359,11 +359,11 @@ var NHL_TEAMS = {
 };
 
 var leagueIds = {
-	"NFL": "1",
-	"NBA": "3",
-	"CFB": "2",
-	"CBB": "4",
-	"NCAA": "unused"
+	"NFL": "sport=football&subsport=NFL",
+	"NBA": "sport=basketball&subsport=NBA",
+	"CFB": "sport=football&subsport=NCAA",
+	"CBB": "sport=basketball&subsport=NCAA",
+	"ALL": "unused"
 };
 // =====================================================================================================
 // ------------------------------ Section 2. Skill Code - Intent Handlers  -----------------------------
@@ -419,83 +419,84 @@ function searchByTeamNameIntentHandler() {
 		var self = this;
 		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, team, league) {
 			console.log("searchByTeamNameIntentHandler returning with", retVal);
-				var leagueId = leagueIds[league];
-				if(!leagueId) {
-					console.error("Unknown league.", leagueId);
-					speech = getCouldntFindError(teamOne);
-					found = true;
-				} else {
-					parseString(retVal, function(err, lines) {
-						console.log("got", lines);
-						var found = false;
-						if(!lines || !lines.Data || !lines.Data.Leagues) {
-							console.error("No NFL spreads returned!");
-							speech = getCouldntFindError(teamOne);
-							found = true; // nothing to parse.
-						}
-						var result = {"teamOne" : team};
-						var teamParsed = (team && team['team']) ? team['team']['name'] : null;
-						var speech;
-						for(var i = 0; i < lines.Data.Leagues[0].league.length && !found; i++) {
-							var leagueIdCode = lines.Data.Leagues[0].league[i]['$'].IdLeague;	
-							// handle CFB and CBB if just 'college' was specified. will return the first it finds (football usually)					
-							if((leagueId === leagueIds["NCAA"] && (leagueIdCode === leagueIds["CFB"] || leagueIdCode === leagueIds["CBB"])) || leagueId === leagueIdCode) {
-								for(var j = 0; j < lines.Data.Leagues[0].league[i].game.length; j++) {
-									var game = lines.Data.Leagues[0].league[i].game[j];
-									var visitingTeam = game['$']['vtm'];
-									var homeTeam = game['$']['htm'];
-									console.log("game", visitingTeam, homeTeam);
-									if(visitingTeam === teamParsed) {
-										var line = result['line'] = game.line[0]['$']['vsprdt'];
-										if(line === '') {
-											speech = noSpread(teamParsed, homeTeam, leagueIdCode);
-										} else {
-											speech = spreadToSpeech(line, teamParsed, homeTeam, true, leagueIdCode);
-										}
-										result['teamTwo']  = game.line[0]['$']['htm'];
-										result['teamOneML'] = game.line[0]['$']['voddsh'];
-										result['teamOneOdds'] = game.line[0]['$']['vsprdoddst'];
-										result['teamTwoML'] = game.line[0]['$']['hoddsh'];
-										result['teamTwoOdds'] = game.line[0]['$']['hsprdoddst'];
-										found = true;									
-									} else if(homeTeam === teamParsed) {
-										var line = result['line'] = game.line[0]['$']['hsprdt'];
-										if(line === '') {
-											speech = noSpread(teamParsed, visitingTeam, leagueIdCode);
-										} else {
-											speech = spreadToSpeech(line, teamParsed, visitingTeam, false, leagueIdCode);
-										}
-										result['teamTwo']  = game.line[0]['$']['vtm'];
-										result['teamOneML'] = game.line[0]['$']['hoddsh'];
-										result['teamOneOdds'] = game.line[0]['$']['hsprdoddst'];
-										result['teamTwoML'] = game.line[0]['$']['voddsh'];
-										result['teamTwoOdds'] = game.line[0]['$']['vsprdoddst'];
-										found = true;		
-									}
-
-									if(found) {
-										result['ou'] = game.line[0]['$']['unt'];
-										if(result['ou']) {
-											speech += "The over under is " + result['ou'] + " points. ";
-										}
-										console.log("Result", result);
-										break;
-									}
-								}
-								if(leagueId !== leagueIds["NCAA"] || found) {
-									break;
-								}
+			var leagueId = leagueIds[league];
+				parseString(retVal, function(err, lines) {
+					console.log("got", lines);
+					var found = false;
+					if(!lines || !lines.bestlinesports_line_feed) {
+						console.error("No spreads returned!");
+						speech = getCouldntFindError(teamOne);
+						found = true; // nothing to parse.
+					}
+					var result = {"teamOne" : team};
+					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
+					var speech;
+					for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
+						var game = lines.bestlinesports_line_feed.event[i];
+						var team1 = lines.bestlinesports_line_feed.event[i].participant[0];
+						var team2 = lines.bestlinesports_line_feed.event[i].participant[1];	
+						console.log("checking", team1, team2, league);	
+						console.log("game", game);				
+						if(team1.participant_name[0] === teamParsed) {
+							var onTheRoad = (team1.visiting_home_draw[0] === "Visiting");
+							var line;								
+							if(onTheRoad) {
+								line = result['line'] = game.period[0].spread[0].spread_visiting;
+							} else {
+								line = result['line'] = game.period[0].spread[0].spread_home;
 							}
+							console.log("team1 match, on the road?", onTheRoad);
+							if(line === '') {
+								speech = noSpread(teamParsed, team2.participant_name[0], league);
+							} else {
+								if(league === "ALL") {
+									league = getLeagueName(game.league[0]);
+								}
+								speech = spreadToSpeech(line, teamParsed, team2.participant_name[0], onTheRoad, league);
+							}
+							result['teamTwo'] = team2.participant_name[0];
+							result['teamOneML'] = team1.odds[0].moneyline;
+							result['teamTwoML'] = team2.odds[0].moneyline;
+							found = true; 
+						}  else if(team2.participant_name[0] === teamParsed) {
+							var onTheRoad = (team2.visiting_home_draw[0] === "Visiting");
+							var line;								
+							if(onTheRoad) {
+								line = result['line'] = game.period[0].spread[0].spread_visiting;
+							} else {
+								if(league === "ALL") {
+									league = getLeagueName(game.league[0]);
+								}
+								line = result['line'] = game.period[0].spread[0].spread_home;
+							}
+							console.log("team2 match, on the road?", onTheRoad);
+							if(line === '') {
+								speech = noSpread(teamParsed, team1.participant_name[0], league);
+							} else {
+								speech = spreadToSpeech(line, teamParsed, team1.participant_name[0], onTheRoad, league);
+							}
+							result['teamTwo'] = team1.participant_name[0];
+							result['teamOneML'] = team2.odds[0].moneyline;
+							result['teamTwoML'] = team1.odds[0].moneyline;
+							found = true;
 						}
-						if(!speech) {
-							speech = getCouldntFindError(teamOne);
+						if(found) {
+							result['ou'] = game.period[0].total[0].total_points;
+							if(result['ou']) {
+								speech += "The over under is " + result['ou'] + " points. ";
+							}
+							console.log("Result", result);
+							break;
 						}
-						self.attributes.lastSearch = result;
-						self.attributes.lastSearch.speech = speech;
-						console.log("Going to return: " + speech);
-						self.emit(":tell", speech);
-					}); 
-				}
+					}
+					if(!speech) {
+						speech = getCouldntFindError(teamOne);
+					}
+					self.attributes.lastSearch = result;
+					self.attributes.lastSearch.speech = speech;
+					console.log("Going to return: " + speech);
+					self.emit(":tell", speech);
+				}); 
 		}, function() {
 			self.emit(":tell", getCouldntFindError(teamOne));
 		});
@@ -511,7 +512,20 @@ function searchByTeamNameIntentHandler() {
 // =====================================================================================================
 
 function getGenericHelpMessage(){
-	return "For example, you can ask for 'the steelers,' or 'the Pittsburgh basketball game.'";
+	return "For example, you can ask for 'the steelers,' or 'the West Virginia basketball game.'";
+}
+
+function getLeagueName(leagueName) {
+	console.log("getLeagueName", leagueName);
+	if(leagueName === "NCAA Football") {
+		return "CFB";
+	} else if(leagueName === "NCAA Basketball") {
+		return "CBB";
+	} else if(leagueName === "NFL" || leagueName === "NBA") {
+		return leagueName;
+	} else {
+		return null;
+	}
 }
 
 function getCouldntFindError(teamName) {
@@ -547,8 +561,13 @@ function isSlotValid(request, slotName){
 
 function updateOdds(team, league, successCallback) {
 	var xmlResponse = "";
+	var queryStr = "";	
+	if(leagueIds[league] !== leagueIds["ALL"]) {
+		queryStr = leagueIds[league];
+	}
 	var options = {
-		host : 'lines.bookmaker.eu',
+		host : 'livelines.betonline.com',
+		path : '/sys/LineXML/LiveLineObjXml.asp?' + queryStr, // if no query, site will default to today's events.
 		method : 'GET',
 		port: 80,
 		headers: {'user-agent': 'node.js'}
@@ -561,7 +580,7 @@ function updateOdds(team, league, successCallback) {
 			var params = {
 				Body: xmlResponse,
 				Bucket:S3_BUCKET_NAME,
-				Key:S3_ODDS_KEY
+				Key:league
 			};
 			s3.putObject(params, function(err, data) { // store plain XML in S3 for later retrieval.
 				if(err) {
@@ -594,7 +613,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 				} else if(sportsEvent.includes("football")) {
 					league = "CFB";
 				} else {
-					league = "NCAA";
+					league = "ALL";
 				}
 			}
 		} else if(sportsEvent.includes("n. f. l.") || sportsEvent.includes("NFL") || sportsEvent.includes("NF L")) {
@@ -646,7 +665,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 					// one of these teams doesn't have a football team, so this must be a basketball matchup.
 					league = "CBB";
 				} else {
-					league = "NCAA";
+					league = "ALL";
 				}
 			}
 		}
@@ -668,7 +687,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 						console.log(teamOne + " is a basketball only school.");
 						league = "CBB";
 					} else {
-						league = "NCAA";
+						league = "ALL";
 					}
 				}
 			}
@@ -682,7 +701,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 
 	var params = {
 		Bucket: S3_BUCKET_NAME,
-		Key: S3_ODDS_KEY
+		Key: league
 	};	
 	s3.getObject(params, function(err, data) {
 		if(err) {
@@ -709,7 +728,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad, league) {
 	console.log("spreadToSpeech", spread);
 	var where = teamOneOnTheRoad ? "on the road" : "at home";
-	var singular = (league === leagueIds["CFB"] || league === leagueIds["CBB"]);
+	var singular = (league === "CFB" || league === "CBB");
 
 	var speech;
 	if(singular) {
