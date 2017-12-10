@@ -10,7 +10,6 @@ var APP_ID = "amzn1.ask.skill.b012474e-0a43-4bf7-95a5-ca1496fe65fd";
 
 
 var S3_BUCKET_NAME = "gamelines";
-var S3_ODDS_KEY = "gamelines";
 var HOURS_TO_KEEP_ODDS = 3;
 var skillName = "Game Lines";
 
@@ -33,37 +32,38 @@ var SHUTDOWN_MESSAGE = "Ok.";
 var EXIT_SKILL_MESSAGE = "Ok.";
 
 var NFL_TEAMS = {
-	"az": {name: "Arizona Cardinals", img: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'},
-	"atl": {name: "Atlanta Falcons", img: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/atl.png&h=700&w=700'},
-	"bal": {name: "Baltimore Ravens", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/bal.png&h=700&w=700'},
-	"buf": {name: "Buffalo Bills", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/buf.png&h=700&w=700'},
-	"car": {name: "Carolina Panthers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'},
-	"chi": {name: "Chicago Bears", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/chi.png&h=700&w=700'},
-	"cin": {name: "Cincinatti Bengals", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cin.png&h=700&w=700'},
-	"cle": {name: "Cleveland Browns", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cle.png&h=700&w=700'},
-	"dal": {name: "Dallas Cowboys", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/dal.png&h=700&w=700'},
-	"det": {name: "Denver Broncos", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/den.png&h=700&w=700'},
-	"gb": {name: "Green Bay Packers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/gb.png&h=700&w=700'},
-	"hou": {name: "Houston Texans", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'},
-	"ind": {name: "Indianapolis Colts", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ind.png&h=700&w=700'},
-	"jax": {name: "Jacksonville Jaguars", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/jax.png&h=700&w=700'},
-	"kc": {name: "Kansas City Chiefs", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/kc.png&h=700&w=700'},
-	"lac": {name: "Los Angeles Chargers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/lac.png&h=700&w=700'},
-	"lar": {name: "Los Angeles Rams", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=700&w=700'},
-	"mia": {name: "Miami Dolphins", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/mia.png&h=700&w=700'},
-	"min": {name: "Minnesota Vikings", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/min.png&h=700&w=700'},
-	"ne": {name: "New England Patriots", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ne.png&h=700&w=700'},
-	"no": {name: "New Orleans Saints", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/no.png&h=700&w=700'},
-	"nyg": {name: "New York Giants", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyg.png&h=700&w=700'},
-	"nyj": {name: "New York Jets", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyj.png&h=700&w=700'},
-	"oak": {name: "Oakland Raiders", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/oak.png&h=700&w=700'},
-	"phi": {name: "Philadelphia Eagles", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/phi.png&h=700&w=700'},
-	"pit": {name: "Pittsburgh Steelers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/pit.png&h=700&w=700'},
-	"sf": {name: "San Francisco 49ers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sf.png&h=700&w=700'},
-	"sea": {name: "Seattle Seahawks", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sea.png&h=700&w=700'},
-	"tb": {name: "Tampa Bay Buccaneers", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/tb.png&h=700&w=700'},
-	"ten": {name: "Tennessee Titans", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ten.png&h=700&w=700'},
-	"was": {name: "Washington Redskins", img: 'http://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/was.png&h=700&w=700'}
+	"az": {name: "Arizona Cardinals"},
+	"atl": {name: "Atlanta Falcons"},
+	"bal": {name: "Baltimore Ravens"},
+	"buf": {name: "Buffalo Bills"},
+	"car": {name: "Carolina Panthers"},
+	"chi": {name: "Chicago Bears"},
+	"cin": {name: "Cincinatti Bengals"},
+	"cle": {name: "Cleveland Browns"},
+	"dal": {name: "Dallas Cowboys"},
+	"den": {name: "Denver Broncos"},
+	"det": {name: "Detroit Lions"},
+	"gb": {name: "Green Bay Packers"},
+	"hou": {name: "Houston Texans"},
+	"ind": {name: "Indianapolis Colts"},
+	"jax": {name: "Jacksonville Jaguars"},
+	"kc": {name: "Kansas City Chiefs"},
+	"lac": {name: "Los Angeles Chargers"},
+	"lar": {name: "Los Angeles Rams"},
+	"mia": {name: "Miami Dolphins"},
+	"min": {name: "Minnesota Vikings"},
+	"ne": {name: "New England Patriots"},
+	"no": {name: "New Orleans Saints"},
+	"nyg": {name: "New York Giants"},
+	"nyj": {name: "New York Jets"},
+	"oak": {name: "Oakland Raiders"},
+	"phi": {name: "Philadelphia Eagles"},
+	"pit": {name: "Pittsburgh Steelers"},
+	"sf": {name: "San Francisco 49ers"},
+	"sea": {name: "Seattle Seahawks"},
+	"tb": {name: "Tampa Bay Buccaneers"},
+	"ten": {name: "Tennessee Titans"},
+	"was": {name: "Washington Redskins"}
 };
 
 var NBA_TEAMS = {
@@ -418,7 +418,6 @@ function searchByTeamNameIntentHandler() {
 		}
 		var self = this;
 		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, team, league) {
-			console.log("searchByTeamNameIntentHandler returning with", retVal);
 			var leagueId = leagueIds[league];
 				parseString(retVal, function(err, lines) {
 					console.log("got", lines);
@@ -428,24 +427,21 @@ function searchByTeamNameIntentHandler() {
 						speech = getCouldntFindError(teamOne);
 						found = true; // nothing to parse.
 					}
-					var result = {"teamOne" : team};
 					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
+					var result = {"teamOne" : teamParsed};
 					var speech;
 					for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
 						var game = lines.bestlinesports_line_feed.event[i];
 						var team1 = lines.bestlinesports_line_feed.event[i].participant[0];
 						var team2 = lines.bestlinesports_line_feed.event[i].participant[1];	
-						console.log("checking", team1, team2, league);	
-						console.log("game", game);				
 						if(team1.participant_name[0] === teamParsed) {
 							var onTheRoad = (team1.visiting_home_draw[0] === "Visiting");
 							var line;								
 							if(onTheRoad) {
-								line = result['line'] = game.period[0].spread[0].spread_visiting;
+								line = result['line'] = game.period[0].spread[0].spread_visiting[0];
 							} else {
-								line = result['line'] = game.period[0].spread[0].spread_home;
+								line = result['line'] = game.period[0].spread[0].spread_home[0];
 							}
-							console.log("team1 match, on the road?", onTheRoad);
 							if(line === '') {
 								speech = noSpread(teamParsed, team2.participant_name[0], league);
 							} else {
@@ -462,14 +458,13 @@ function searchByTeamNameIntentHandler() {
 							var onTheRoad = (team2.visiting_home_draw[0] === "Visiting");
 							var line;								
 							if(onTheRoad) {
-								line = result['line'] = game.period[0].spread[0].spread_visiting;
+								line = result['line'] = game.period[0].spread[0].spread_visiting[0];
 							} else {
 								if(league === "ALL") {
 									league = getLeagueName(game.league[0]);
 								}
-								line = result['line'] = game.period[0].spread[0].spread_home;
+								line = result['line'] = game.period[0].spread[0].spread_home[0];
 							}
-							console.log("team2 match, on the road?", onTheRoad);
 							if(line === '') {
 								speech = noSpread(teamParsed, team1.participant_name[0], league);
 							} else {
@@ -479,7 +474,7 @@ function searchByTeamNameIntentHandler() {
 							result['teamOneML'] = team2.odds[0].moneyline;
 							result['teamTwoML'] = team1.odds[0].moneyline;
 							found = true;
-						}
+						} // TODO handle neutral site games
 						if(found) {
 							result['ou'] = game.period[0].total[0].total_points;
 							if(result['ou']) {
@@ -489,13 +484,22 @@ function searchByTeamNameIntentHandler() {
 							break;
 						}
 					}
+					var card = true;
 					if(!speech) {
 						speech = getCouldntFindError(teamOne);
+						card = false;
 					}
 					self.attributes.lastSearch = result;
 					self.attributes.lastSearch.speech = speech;
+					
 					console.log("Going to return: " + speech);
-					self.emit(":tell", speech);
+					if(!card) {
+						self.emit(":tell", speech);
+					} else {
+						var cardTitle = result['teamOne'] + " vs. " + result['teamTwo'] + " odds";
+						var cardContent = speech;
+						self.emit(":tellWithCard", speech, cardTitle, cardContent);
+					}
 				}); 
 		}, function() {
 			self.emit(":tell", getCouldntFindError(teamOne));
@@ -516,7 +520,6 @@ function getGenericHelpMessage(){
 }
 
 function getLeagueName(leagueName) {
-	console.log("getLeagueName", leagueName);
 	if(leagueName === "NCAA Football") {
 		return "CFB";
 	} else if(leagueName === "NCAA Basketball") {
@@ -604,7 +607,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 	var league;
 
 	if(sportsEvent) {
-		if(sportsEvent.includes("college") || sportsEvent.includes("n. c. a. a.") || sportsEvent.includes("NCAA")) {
+		if(sportsEvent.includes("college") || sportsEvent.includes("n. c. a. a.") || sportsEvent.includes("ncaa")) {
 			var ncaa = getNCAATeamName(teamOne);
 			if(ncaa) {
 				// if this team has no football team we're obviously searching BB
@@ -616,19 +619,22 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 					league = "ALL";
 				}
 			}
-		} else if(sportsEvent.includes("n. f. l.") || sportsEvent.includes("NFL") || sportsEvent.includes("NF L")) {
+		} else if(sportsEvent.includes("n. f. l.") || sportsEvent.includes("nfl") || sportsEvent.includes("nf l")) {
 			teamObj = getNFLTeamName(teamOne);
 			league = "NFL";
-		} else if(sportsEvent.includes("n. b. a.") || sportsEvent.includes("NBA") || sportsEvent.includes("NB A")) {
+		} else if(sportsEvent.includes("n. b. a.") || sportsEvent.includes("nba") || sportsEvent.includes("nb a")) {
 			teamObj = getNBATeamName(teamOne);
 			league = "NBA";
 		} else if(sportsEvent.includes("football")) {
 			// could be NFL or NCAA..
 			teamObj = getNFLTeamName(teamOne);
 			league = "NFL";
-			if(!teamObj) {
-				teamObj = getNCAATeamName(teamOne);
-				league = "CFB";
+			if(!teamObj || !teamObj.exactMatch) {
+				var ncaa = getNCAATeamName(teamOne);
+				if(ncaa) {
+					teamObj = ncaa;
+					league = "CFB";
+				}			
 			}
 		} else if(sportsEvent.includes("basketball")) {
 			// could be NBA or NCAA.
@@ -638,6 +644,8 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 				teamObj = getNCAATeamName(teamOne);
 				league = "CBB";
 			}	
+		} else {
+			console.log("unknown league");
 		}
 	} else if(teamTwo) {
 		// try NFL first.
@@ -670,31 +678,35 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 			}
 		}
 	} else {
+		console.log("1 team name only.");
 		// we only have 1 team name to work with.
 		teamObj = getNFLTeamName(teamOne);
-		if(teamObj) {
-			league = "NFL";
-		} else {
-			teamObj = getNBATeamName(teamOne);
-			if(teamObj) {
-				league = "NBA";
+		if(!teamObj || !teamObj.exactMatch) {
+			var ncaa = getNCAATeamName(teamOne);
+			if(ncaa) {
+				teamObj = ncaa;
+				if(!teamObj.team.football) {
+					// team doesn't have a football team. must be BB 
+					console.log(teamOne + " is a basketball only school.");
+					league = "CBB";
+				} else {
+					league = "ALL";
+				}
 			} else {
-				// try college last.
-				teamObj = getNCAATeamName(teamOne);
-				if(teamObj) {
-					if(!teamObj.team.football) {
-						// team doesn't have a football team. must be BB 
-						console.log(teamOne + " is a basketball only school.");
-						league = "CBB";
-					} else {
-						league = "ALL";
-					}
+				var nba = getNBATeamName(teamOne);
+				if(!teamObj || nba.exactMatch) { // will not override NFL unless its an exact match!
+					teamObj = nba;
+					league = "NBA";
 				}
 			}
-		}	
+
+		} else {
+			league = "NFL";
+		}		
 	}
 	if(!teamObj) {
 		teamNotFoundCallback();
+		return;
 	} else {
 		console.log("league", league, "teamObj", teamObj);
 	}
@@ -736,10 +748,10 @@ function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad, league) {
 	} else {
 		speech = "The " + teamOne + " are ";
 	}
-
-	if(spread === '0') {
+	var spreadAsNum = parseInt(spread);
+	if(spreadAsNum === 0) {
 		speech += "at even odds against ";
-	} else if(spread < 0) {
+	} else if(spreadAsNum < 0) {
 		speech += (spread * -1) + " point favorites against ";
 	} else {
 		speech += spread + " point underdogs against ";
@@ -1158,8 +1170,8 @@ function getNCAATeamName(input) {
 		return {team: NCAA_TEAMS["ps"], exactMatch: true};
 	} else if(i.includes("pepper")) {
 		return {team: NCAA_TEAMS["pep"], exactMatch: true};
-	} else if(i.includes("pitt")) {
-		return {team: NCAA_TEAMS["pitt"], exactMatch: true};
+	} else if(i.includes("pit")) {
+		return {team: NCAA_TEAMS["pit"], exactMatch: true};
 	} else if(i.includes("portland")) {
 		return {team: NCAA_TEAMS["por"], exactMatch: true};
 	} else if(i.includes("providence")) {
