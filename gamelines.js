@@ -17,7 +17,7 @@ var skillName = "Game Lines";
 var WELCOME_MESSAGE = "Welcome to " + skillName + ", find the line for an upcoming sport event. " + getGenericHelpMessage();
 
 //This is the message a user will hear when they ask Alexa for help in your skill.
-var HELP_MESSAGE = "I can help you find spreads for sports events. ";
+var HELP_MESSAGE = "I can help you find spreads for NFL, NBA and college games. ";
 
 //This is the message a user will hear when they begin a new search
 var NEW_SEARCH_MESSAGE = getGenericHelpMessage();
@@ -98,106 +98,173 @@ var NBA_TEAMS = {
 	"utah": {name: "Utah Jazz"},
 	"was" : {name: "Washington Wizards"}
 };
-
+// https://en.wikipedia.org/wiki/List_of_NCAA_Division_I_men%27s_basketball_programs start with A-10
 var NCAA_TEAMS = {
+	"ab" : {name: "Abilene Christian", football: false},
 	"af" : {name: "Air Force", football: true},
 	"ak" : {name: "Akron", football: true},
 	"al" : {name: "Alabama", football: true},
+	"alam" : {name: "Alabama A&M", football: false},
+	"alb" : {name: "Albany", football: false},
+	"alco" : {name: "Alcorn State", football: false},
 	"am" : {name: "American", football: false},
 	"apst" : {name: "Appalachian State", football: true},
 	"az" : {name: "Arizona", football: true},
 	"azst" : {name: "Arizona State", football: true},
 	"ark" : {name: "Arkansas", football: true},
+	"arkpb" : {name: "Arkansas-Pine Bluff", football: false},
 	"arkst" : {name: "Arkansas State", football: true},
 	"army" : {name: "Army", football: true},
 	"aub" : {name: "Auburn", football: true},
+	"ausp" : {name: "Austin Peay", football: false},
 	"ballst" : {name: "Ball State", football: true},
 	"bay" : {name: "Baylor", football: true},
 	"bel" : {name: "Belmont", football: false},
+	"beth" : {name: "Bethune-Cookman", football: false},
 	"bin" : {name: "Binghamton", football: false},
 	"boi" : {name: "Boise State", football: true},
 	"bc" : {name: "Boston College", football: true},
-	"bg" : {name: "Bowling Green", football: true},
 	"bos" : {name: "Boston", football: false},
+	"bg" : {name: "Bowling Green", football: true},
 	"bra" : {name: "Bradley", football: false},
+	"bro" : {name: "Brown", football: false},
+	"bry" : {name: "Bryant", football: false},
+	"buck" : {name: "Bucknell", football: false},
 	"buf" : {name: "Buffalo", football: true},
+	"but" : {name: "Butler", football: false},
 	"byu" : {name: "BYU", football: true},
+	"calpoly" : {name: "Cal Poly", football: false},
 	"cal" : {name: "California", football: true},
 	"calbak" : {name: "Cal State Bakersfield", football: false}, // todo
 	"calful" : {name: "Cal State Fullerton", football: false}, // todo
 	"calnor" : {name: "CS Northridge", football: false},
+	"camp" : {name: "Campbell", football: false},
 	"can" : {name: "Canisius", football: false},
-	"cc" : {name: "Coastal Carolina", football: true},
+	"cena" : {name: "Central Arkansas", football: false},
+	"cenc" : {name: "Central Connecticut", football: false},
+	"cenm" : {name: "Central Michigan", football: true},
 	"cha" : {name: "Charlotte", football: true},
 	"ch" : {name: "Charleston", football: false},
+	"chso" : {name: "Charleston Southern", football: false},
+	"charl" : {name: "Charlotte", football: false},
+	"chat" : {name: "Chattanooga", football: false},
 	"chist" : {name: "Chicago State", football: false},
 	"cin" : {name: "Cincinnati", football: true},
+	"cit" : {name: "Citadel", football: false},
 	"cle" : {name: "Clemson", football: true},
 	"clest" : {name: "Cleveland State", football: false},
 	"cmi" : {name: "Central Michigan", football: true},
+	"colg" : {name: "Colgate", football: false},
+	"cc" : {name: "Coastal Carolina", football: true},
 	"col" : {name: "Colorado", football: true},
 	"colst" : {name: "Colorado State", football: true},
+	"colu" : {name: "Columbia", football: false},
 	"con" : {name: "Connecticut", football: true},
+	"copst" : {name: "Coppin State", football: false},
+	"corn" : {name: "Cornell", football: false},
 	"cre" : {name: "Creighton", football: false},
+	"dart" : {name: "Dartmouth", football: false},
+	"dav" : {name: "Davidson", football: false},
+	"day" : {name: "Dayton", football: false},
+	"del" : {name: "Delaware", football: false},
+	"delst" : {name: "Delaware State", football: false},
 	"den" : {name: "Denver", football: false},
 	"dep" : {name: "DePaul", football: false},
 	"det" : {name: "Detroit University", football: false},
+	"drake" : {name: "Drake", football: false},
 	"dre" : {name: "Drexel", football: false},
 	"duke" : {name: "Duke", football: true},
+	"duq" : {name: "Duquesne", football: false},
 	"ec" : {name: "East Carolina", football: true},
+	"eten" : {name: "East Tennessee State", football: false},
+	"eill" : {name: "Eastern Illinois", football: false},
+	"eky" : {name: "Eastern Kentucky", football: false},
+	"ewas" : {name: "Eastern Washington", football: false},
 	"em" : {name: "Eastern Michigan", football: true},
+	"elon" : {name: "Elon", football: false},
 	"ev" : {name: "Evansville", football: false},
 	"fai" : {name: "Fairfield", football: false},
+	"fadi" : {name: "Fairleigh Dickinson", football: false},
 	"fiu" : {name: "FIU", football: true}, // todo
 	"fl" : {name: "Florida", football: true},
+	"flam" : {name: "Florida A&M", football: false},
 	"fla" : {name: "Florida Atlantic", football: true},
 	"flgc" : {name: "Florida Gulf Coast", football: false},
 	"flst" : {name: "Florida State", football: true},
+	"ford" : {name: "Fordham", football: false},
 	"fo" : {name: "Fort Wayne", football: false},
 	"fresno" : {name: "Fresno State", football: true},
+	"fur" : {name: "Furham", football: false},
+	"gawe" : {name: "Gardner-Webb", football: false},
 	"geom" : {name: "George Mason", football: false},
 	"geow" : {name: "George Washington", football: false},
+	"gtown" : {name: "Georgetown", football: false},
 	"ga": {name: "Georgia", football: true},
+	"gaso" : {name: "Georgia Southern", football: false},
 	"gast" : {name: "Georgia State", football: true},
 	"gatech" : {name: "Georgia Tech", football: true},
 	"gon" : {name: "Gonzaga", football: false},
+	"grast" : {name: "Grambling State", football: false},
 	"gra" : {name: "Grand Canyon", football: false},
-	"gb" : {name: "Green Bay", football: false},
+	"gb" : {name: "Wisc Green Bay", football: false},
+	"hamp" : {name: "Hampton", football: false},
+	"har" : {name: "Hartford", football: false},
+	"harv" : {name: "Harvard", football: false},
 	"haw" : {name: "Hawaii", football: true},
 	"hp" : {name: "High Point", football: false},
 	"hof" : {name: "Hofstra", football: false},
+	"hc" : {name: "Holy Cross", football: false},
+	"houb" : {name: "Houston Baptist", football: false},
+	"how" : {name: "Howard", football: false},
 	"hou" : {name: "Houston University", football: true},
 	"id" : {name: "Idaho", football: true},
+	"idst" : {name: "Idaho State", football: false},
 	"il" : {name: "Illinois", football: true},
+	"ilst" : {name: "Illinois State", football: false},
+	"incw" : {name: "Incarnate Word", football: false},
 	"ind" : {name: "Indiana", football: true},
+	"indst" : {name: "Indiana State", football: false},
 	"ia" : {name: "Iowa", football: true},
 	"iast" : {name: "Iowa State", football: true},
 	"iona" : {name: "Iona", football: false},
 	"iupui" : {name: "IUPUI", football: false}, // todo
+	"jaxst" : {name: "Jackson State", football: false},
+	"jac" : {name: "Jacksonville", football: false},
+	"jacst" : {name: "Jacksonville State", football: false},
+	"jmu" : {name: "James Madison", football: false},
 	"kan" : {name: "Kansas", football: true},
 	"kst" : {name: "Kansas State", football: true},
+	"kenn" : {name: "Kennesaw State", football: false},
 	"kentst" : {name: "Kent State", football: true},
 	"kent" : {name: "Kentucky", football: true},
-	"lsu" : {name: "LSU", football: true},
 	"las" : {name: "La Salle", football: false}, // todo
+	"laf" : {name: "Lafayette", football: false},
+	"lam" : {name: "Lamar", football: false},
+	"leh" : {name: "Lehigh", football: false},
+	"lib" : {name: "Liberty", football: false},
 	"lip" : {name: "Lipscomb", football: false},
 	"lit" : {name: "Little Rock", football: false},
 	"liu" : {name: "LIU Brooklyn", football: false}, // todo
 	"lb" : {name: "Long Beach State", football: false},
 	"lon" : {name: "Longwood", football: false},
+	"lsu" : {name: "LSU", football: true},
 	"latech" : {name: "Louisiana Tech", football: true},
-	"lala" : {name: "UL Lafayette", football: true},
-	"lamo" : {name: "UL Monroe", football: true}, 
+	"lala" : {name: "UL - Lafayette", football: true},
+	"lamo" : {name: "UL - Monroe", football: true}, // todo
 	"lou" : {name: "Louisville", football: true},
 	"loyc" : {name: "Loyola Chicago", football: false}, // todo
 	"loymd" : {name: "Loyola Maryland", football: false}, // todo
 	"loym" : {name: "Loyola Marymount", football: false}, // todo
+	"maine" : {name: "Maine", football: false},
 	"man" : {name: "Manhattan", football: false}, 
+	"mar" : {name: "Marist", football: false},
 	"marq" : {name: "Marquette", football: false},
 	"mars" : {name: "Marshall", football: true},
 	"md" : {name: "Maryland", football: true},
 	"mdes" : {name: "Maryland Eastern Shore", football: false}, // todo
 	"mass" : {name: "Massachusetts", football: true},
+	"mcn" : {name: "McNeese State", football: false},
+	"mer" : {name: "Mercer", football: false},
 	"mem" : {name: "Memphis", football: true},
 	"miafl" : {name: "Miami Florida", football: true},
 	"miaoh" : {name: "Miami Ohio", football: true},
@@ -205,26 +272,46 @@ var NCAA_TEAMS = {
 	"mist" : {name: "Michigan State", football: true},
 	"midtenn" : {name: "Middle Tennessee", football: true},
 	"milw" : {name: "Milwaukee", football: false},
-	"minn" : {name: "Minnesota University", football: true},
+	"minn" : {name: "Minnesota", football: true},
 	"ms" : {name: "Ole Miss", football: true}, // todo
 	"msst" : {name: "Mississippi State", football: true},
+	"missv" : {name: "Miss Valley State", football: false},
 	"mo" : {name: "Missouri", football: true},
+	"most" : {name: "Missouri State", football: false},
+	"mon" : {name: "Monmouth", football: false},
+	"mont" : {name: "Montana", football: false},
+	"montst" : {name: "Montana State", football: false},
+	"more" : {name: "Morehead State", football: false},
+	"morg" : {name: "Morgan State", football: false},
 	"msm" : {name: "Mount Saint Marys", football: false}, // todo
+	"murst" : {name: "Murray State", football: false},
 	"navy" : {name: "Navy", football: true},
 	"neb" : {name: "Nebraska", football: true},
 	"nev" : {name: "Nevada", football: true},
+	"nh" : {name: "New Hampshire", football: false},
 	"nm" : {name: "New Mexico", football: true},
 	"nmst" : {name: "New Mexico State", football: true},
+	"no" : {name: "New Orleans", football: false},
 	"nia" : {name: "Niagara", football: false},
+	"nichst" : {name: "Nicholls State", football: false},
 	"njit" : {name: "NJIT", football: false}, // todo
+	"norfst" : {name: "Norfolk State", football: false},
 	"nc" : {name: "North Carolina", football: true},
+	"ncat" : {name: "North Carolina A&T", football: false},
+	"nccu" : {name: "NCCU", football: false},
 	"ncst" : {name: "North Carolina State", football: true},
+	"nda" : {name: "North Dakota", football: false},
+	"ndast" : {name: "North Dakota State", football: false},
 	"nfl" : {name: "North Florida", football: false},
+	"nt" : {name: "North Texas", football: false},
 	"ne" : {name: "Northeastern", football: false},
-	"nky" : {name: "Northern Kentucky", football: false},
-	"nt" : {name: "North Texas", football: true},
+	"naz" : {name: "Northern Arizona", football: false},
+	"nco": {name: "Northern Colorado", football: false},
 	"niu" : {name: "NIU", football: true}, // todo
+	"niowa" : {name: "Northern Iowa", football: false},
+	"nky" : {name: "Northern Kentucky", football: false},
 	"nw" : {name: "Northwestern", football: true},
+	"nwst" : {name: "Northwestern State", football: false},
 	"nd" : {name: "Notre Dame", football: true},
 	"oak" : {name: "Oakland", football: false},
 	"oh" : {name: "Ohio", football: true},
@@ -237,28 +324,43 @@ var NCAA_TEAMS = {
 	"or" : {name: "Oregon", football: true},
 	"orst" : {name: "Oregon State", football: true},
 	"pac" : {name: "Pacific", football: false},
+	"penn" : {name: "Penn", football: false},
 	"ps" : {name: "Penn State", football: true},
 	"pep" : {name: "Pepperdine", football: false},
 	"pit" : {name: "Pittsburgh", football: true},
 	"por" : {name: "Portland University", football: false},
+	"porst" : {name: "Portland State", football: false},
+	"prvam" : {name: "Prairie View A&M", football: false},
+	"pres" : {name: "Presbyterian", football: false},
+	"pri" : {name: "Princeton", football: false},
 	"pro" : {name: "Providence", football: false},
 	"pur" : {name: "Purdue", football: true},
 	"qui" : {name: "Quinnipiac", football: false},
 	"rad" : {name: "Radford", football: false},
+	"rho" : {name: "Rhode Island", football: false},
 	"rice" : {name: "Rice", football: true},
+	"rich" : {name: "Richmond", football: false},
 	"rid" : {name: "Rider", football: false},
-	"rut" : {name: "Rutgers Scarlet", football: true},
+	"rm" : {name: "Robert Morris", football: false},
+	"rut" : {name: "Rutgers", football: true},
+	"sacst" : {name: "Sacramento State", football: false},
+	"sach" : {name: "Sacred Heart", football: false},
 	"stb" : {name: "St. Bonaventure", football: false}, // todo
 	"stf" : {name: "St. Francis Brooklyn", football: false}, // todo
+	"stfpa" : {name: "St. Francis PA", football: false}, // todo
 	"stj" : {name: "Saint Johns", football: false}, // todo
 	"stjoe" : {name: "Saint Josephs", football: false}, // todo
-	"stl" : {name: "Saint Louis", football: false}, // todo
+	"stl" : {name: "Saint Louis", football: false}, // good bo
 	"stm" : {name: "Saint Marys CA", football: false}, 
-	"stp" : {name: "Saint Peters", football: false},
+	"stp" : {name: "St. Peter's", football: false},
+	"samh" : {name: "Sam Houston State", football: false},
+	"samf" : {name: "Samford", football: false},
+	"sd" : {name: "San Diego", football: false},
 	"sdst" : {name: "San Diego State", football: true},
 	"sanf" : {name: "San Francisco", football: false},
 	"sjst" : {name: "San Jose State", football: true},
 	"sant" : {name: "Santa Clara", football: false},
+	"sav" : {name: "Savannah State", football: false},
 	"sea" : {name: "Seattle", football: false},
 	"set" : {name: "Seton Hall", football: false},
 	"sie" : {name: "Siena", football: false},
@@ -266,25 +368,42 @@ var NCAA_TEAMS = {
 	"smu" : {name: "SMU", football: true},
 	"sal" : {name: "South Alabama", football: true},
 	"sc" : {name: "South Carolina", football: true},
+	"scst" : {name: "SC State", football: false},
 	"scu" : {name: "South Carolina Upstate", football: false},
+	"sda" : {name: "South Dakota", football: false},
+	"sdast" : {name: "South Dakota State", football: false},
 	"usf" : {name: "South Florida", football: true},
+	"semost" : {name: "SE Missouri State", football: false},
+	"selou" : {name: "SE Louisiana", football: false},
+	"sil" : {name: "Southern Illinois", football: false},
 	"smi" : {name: "Southern Miss", football: true},
+	"south" : {name: "Southern", football: false},
+	"suta" : {name: "Southern Utah", football: false},
 	"sta" : {name: "Stanford", football: true},
+	"sfa" : {name: "Stephen F. Austin", football: false},
+	"stet" : {name: "Stetson", football: false},
+	"sb" : {name: "Stony Brook", football: false},
 	"syr" : {name: "Syracuse", football: true},
 	"tcu" : {name: "TCU", football: true},
 	"tem" : {name: "Temple", football: true},
 	"ten" : {name: "Tennessee", football: true},
+	"tenmart" : {name: "UT-Martin", football: false},
+	"tenst" : {name: "Tennessee State", football: false},
+	"tentc" : {name: "Tennessee Tech", football: false},
 	"tex" : {name: "Texas", football: true},
 	"texam" : {name: "Texas A&M", football: true},
 	"texamcc": {name: "Texas A&M Corpus Christi", football: false}, // todo
 	"texar" : {name: "UT Arlington", football: false},
+	"texs" : {name: "Texas Southern", football: false},
 	"texst" : {name: "Texas State", football: true},
 	"textc" : {name: "Texas Tech", football: true},
 	"tol" : {name: "Toledo", football: true},
+	"tow" : {name: "Towson", football: false},
 	"troy" : {name: "Troy", football: true},
 	"tula" : {name: "Tulane", football: true},
 	"tuls" : {name: "Tulsa", football: true},
 	"uab" : {name: "UAB", football: true},
+	"ucda" : {name: "Cal Davis", football: false},
 	"ucr" : {name: "Cal Riverside", football: false}, // todo
 	"uci" : {name: "Cal Irvine", football: false},
 	"ucsb" : {name: "Cal Santa Barbara", football: false},
@@ -305,23 +424,34 @@ var NCAA_TEAMS = {
 	"utep" : {name: "UTEP", football: true},
 	"utrgv" : {name: "UTRGV", football: false}, // todo
 	"utsa" : {name: "UTSA", football: true},
+	"valp" : {name: "Valparaiso", football: false},
 	"van" : {name: "Vanderbilt", football: true},
 	"ver" : {name: "Vermont", football: false},
+	"vil" : {name: "Villanova", football: false},
 	"vcu" : {name: "Virginia Commonwealth", football: false},
 	"va" : {name: "Virginia", football: true},
 	"vatech" : {name: "Virginia Tech", football: true},
+	"vmi" : {name: "VMI", football: false},
+	"wagner" : {name: "Wagner", football: false},
 	"wake" : {name: "Wake Forest", football: true},
 	"was" : {name: "Washington University", football: true},
 	"wasst" : {name: "Washington State", football: true},
+	"web" : {name: "Weber State", football: false},
 	"wv" : {name: "West Virginia", football: true},
+	"wcar" : {name: "Western Carolina", football: false},
+	"wil" : {name: "Western Illinois", football: false},
 	"wky" : {name: "Western Kentucky", football: true},
 	"wmi" : {name: "Western Michigan", football: true},
 	"wic" : {name: "Wichita State", football: false}, // todo
+	"wandm" : {name: "William & Mary", football: false}, // todo
 	"win" : {name: "Winthrop", football: false},
 	"wis" : {name: "Wisconsin", football: true},
+	"wof" : {name: "Wofford", football: false},
 	"wrs" : {name: "Wright State", football: false}, // todo
 	"wy" : {name: "Wyoming", football: true},
-	"xav" : {name: "Xavier", football: false}
+	"xav" : {name: "Xavier", football: false},
+	"yale": {name: "Yale", football: false},
+	"ys" : {name: "Youngstown State", football: false}
 };
 
 var NHL_TEAMS = {
@@ -418,16 +548,15 @@ function searchByTeamNameIntentHandler() {
 		}
 		var self = this;
 		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, team, league) {
-			var leagueId = leagueIds[league];
 				parseString(retVal, function(err, lines) {
 					console.log("got", lines);
 					var found = false;
+					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
 					if(!lines || !lines.bestlinesports_line_feed) {
 						console.error("No spreads returned!");
-						speech = getCouldntFindError(teamOne);
+						speech = getCouldntFindOddsError(teamParsed);
 						found = true; // nothing to parse.
 					}
-					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
 					var result = {"teamOne" : teamParsed};
 					var speech;
 					for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
@@ -486,7 +615,7 @@ function searchByTeamNameIntentHandler() {
 					}
 					var card = true;
 					if(!speech) {
-						speech = getCouldntFindError(teamOne);
+						speech = getCouldntFindOddsError(teamParsed);
 						card = false;
 					}
 					self.attributes.lastSearch = result;
@@ -502,7 +631,7 @@ function searchByTeamNameIntentHandler() {
 					}
 				}); 
 		}, function() {
-			self.emit(":tell", getCouldntFindError(teamOne));
+			self.emit(":tell", getCouldntFindTeamError(teamOne));
 		});
 	} else {
 		console.log("Don't have team one to search!");
@@ -516,7 +645,7 @@ function searchByTeamNameIntentHandler() {
 // =====================================================================================================
 
 function getGenericHelpMessage(){
-	return "For example, you can ask for 'the steelers,' or 'the West Virginia basketball game.'";
+	return "For example, you can ask game lines for 'the steelers,' or 'the West Virginia basketball game.'";
 }
 
 function getLeagueName(leagueName) {
@@ -531,13 +660,17 @@ function getLeagueName(leagueName) {
 	}
 }
 
-function getCouldntFindError(teamName) {
+function getCouldntFindOddsError(teamName) {
 	if(!teamName) {
-		teamName = "that team.";
+		teamName = "that team's";
 	} else if(!teamName.toLowerCase().substring(0, 4).includes("the")) {
 		teamName = "the " + teamName;	
 	}
-	return "Sorry, I couldn't find odds for " + teamName + " game.";
+	return "I do not have odds for " + teamName + " game yet. Please try again later.";
+}
+
+function getCouldntFindTeamError(userInput) {
+	return "I couldn't find a team with the name " + userInput + ". Please try again.";
 }
 
 exports.handler = function(event, context, callback) {
@@ -618,6 +751,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 				} else {
 					league = "ALL";
 				}
+				teamObj = ncaa;
 			}
 		} else if(sportsEvent.includes("n. f. l.") || sportsEvent.includes("nfl") || sportsEvent.includes("nf l")) {
 			teamObj = getNFLTeamName(teamOne);
@@ -667,7 +801,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 		if(!teamObj) {
 			t1 = getNCAATeamName(teamOne);
 			var t2 = getNCAATeamName(teamTwo);
-			if(t1 && (t1.exactMatch || t2)) {
+			if(t1 &&  t2) {
 				teamObj = t1;
 				if(!t1.football || !t2.football) {
 					// one of these teams doesn't have a football team, so this must be a basketball matchup.
@@ -785,432 +919,459 @@ function getNCAATeamName(input) {
 	var i = input.toLowerCase();
 	
 	if(i.includes("air") && i.includes("force")) {
-		return {team: NCAA_TEAMS["af"], exactMatch: true};
+		return {team: NCAA_TEAMS["af"]};
 	} else if(i.includes("akron")) {
-		return {team: NCAA_TEAMS["ak"], exactMatch: true};
+		return {team: NCAA_TEAMS["ak"]};
 	} else if(i.includes("alabama")) {
 		if(i.includes("south")) {
-			return {team: NCAA_TEAMS["sal"], exactMatch: true};
+			return {team: NCAA_TEAMS["sal"]};
 		}
-		return {team: NCAA_TEAMS["al"], exactMatch: true};
+		return {team: NCAA_TEAMS["al"]};
+	} else if(i.includes("albany")) {
+		return {team: NCAA_TEAMS["alb"]};	
 	} else if(i.includes("american")) {
-		return {team: NCAA_TEAMS["am"], exactMatch: true};
+		return {team: NCAA_TEAMS["am"]};
 	} else if(i.includes("appalachian") || (i.includes("app") && i.includes("state"))) {
-		return {team: NCAA_TEAMS["apst"], exactMatch: true};
+		return {team: NCAA_TEAMS["apst"]};
 	} else if(i.includes("arizona")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["azst"], exactMatch: true};
+			return {team: NCAA_TEAMS["azst"]};
 		} else {
-			return {team: NCAA_TEAMS["az"], exactMatch: true};
+			return {team: NCAA_TEAMS["az"]};
 		}
 	} else if(i.includes("arkansas")) {
 		if(i.includes("State")) {
-			return {team: NCAA_TEAMS["arkst"], exactMatch: true};
+			return {team: NCAA_TEAMS["arkst"]};
 		} else {
-			return {team: NCAA_TEAMS["ark"], exactMatch: true};
+			return {team: NCAA_TEAMS["ark"]};
 		}
 	} else if(i.includes("army")) {
-		return {team: NCAA_TEAMS["army"], exactMatch: true};
+		return {team: NCAA_TEAMS["army"]};
 	} else if(i.includes("auburn")) {
-		return {team: NCAA_TEAMS["aub"], exactMatch: true};
+		return {team: NCAA_TEAMS["aub"]};
 	} else if(i.includes("ball state")) {
-		return {team: NCAA_TEAMS["ballst"], exactMatch: true};
+		return {team: NCAA_TEAMS["ballst"]};
 	} else if(i.includes("baylor")) {
-		return {team: NCAA_TEAMS["bay"], exactMatch: true};
+		return {team: NCAA_TEAMS["bay"]};
 	} else if(i.includes("belmont")) {
-		return {team: NCAA_TEAMS["bel"], exactMatch: true};
+		return {team: NCAA_TEAMS["bel"]};
 	} else if(i.includes("binghamton")) { // todo
-		return {team: NCAA_TEAMS["bin"], exactMatch: true};
+		return {team: NCAA_TEAMS["bin"]};
 	} else if(i.includes("boise")) {
-		return {team: NCAA_TEAMS["boi"], exactMatch: true};
+		return {team: NCAA_TEAMS["boi"]};
 	} else if(i.includes("boston")) {
 		if(i.includes("college")) {
-			return {team: NCAA_TEAMS["bc"], exactMatch: true};
+			return {team: NCAA_TEAMS["bc"]};
 		}
-		return {team: NCAA_TEAMS["bos"], exactMatch: true};
+		return {team: NCAA_TEAMS["bos"]};
 	} else if(i.includes("bowling")) {
-		return {team: NCAA_TEAMS["bg"], exactMatch: true};
+		return {team: NCAA_TEAMS["bg"]};
 	} else if(i.includes("bradley")) {
-		return {team: NCAA_TEAMS["bra"], exactMatch: true};
+		return {team: NCAA_TEAMS["bra"]};
 	} else if(i.includes("buffalo")) {
 		return {team: NCAA_TEAMS["buf"], exactMatch: false}; // NFL -> bills
 	} else if(i.includes("byu") || i.includes("b. y. u.") || i.includes("brigham")) {
-		return {team: NCAA_TEAMS["byu"], exactMatch: true};
+		return {team: NCAA_TEAMS["byu"]};
 	} else if(i.includes("cal")) {
 		if(i.includes("state")) {
 			if(i.includes("baker")) {
-				return {team: NCAA_TEAMS["calbak"], exactMatch: true};
+				return {team: NCAA_TEAMS["calbak"]};
 			} else if(i.includes("fuller")) {
-				return {team: NCAA_TEAMS["calful"], exactMatch: true};
+				return {team: NCAA_TEAMS["calful"]};
 			} else if(i.includes("north")) {
-				return {team: NCAA_TEAMS["calnor"], exactMatch: true};
+				return {team: NCAA_TEAMS["calnor"]};
 			} else {
 				console.log("Couldn't find cal state team", i);
 				return null;
 			}
 		} else if(i.includes("irvine")) {
-			return {team: NCAA_TEAMS["uci"], exactMatch: true};
+			return {team: NCAA_TEAMS["uci"]};
 		} else if(i.includes("barbara")) {
-			return {team: NCAA_TEAMS["ucb"], exactMatch: true};
+			return {team: NCAA_TEAMS["ucb"]};
 		}
-		return {team: NCAA_TEAMS["cal"], exactMatch: true};
+		return {team: NCAA_TEAMS["cal"]};
 	} else if(i.includes("canisius")) {
-		return {team: NCAA_TEAMS["can"], exactMatch: true};
+		return {team: NCAA_TEAMS["can"]};
 	} else if(i.includes("central")) {
-		return {team: NCAA_TEAMS["cmi"], exactMatch: true};
+		return {team: NCAA_TEAMS["cmi"]};
 	} else if(i.includes("charleston")) {
-		return {team: NCAA_TEAMS["ch"], exactMatch: true};
+		return {team: NCAA_TEAMS["ch"]};
 	} else if(i.includes("charlotte")) {
-		return {team: NCAA_TEAMS["cha"], exactMatch: true};
+		return {team: NCAA_TEAMS["cha"]};
 	} else if(i.includes("chicago")) {
-		return {team: NCAA_TEAMS["chist"], exactMatch: true};
+		return {team: NCAA_TEAMS["chist"]};
 	} else if(i.includes("cincinnati")) {
-		return {team: NCAA_TEAMS["cin"], exactMatch: true};
+		return {team: NCAA_TEAMS["cin"]};
 	} else if(i.includes("clemson")) {
-		return {team: NCAA_TEAMS["cle"], exactMatch: true};
+		return {team: NCAA_TEAMS["cle"]};
 	} else if(i.includes("cleveland")) {
-		return {team: NCAA_TEAMS["clest"], exactMatch: true};
+		return {team: NCAA_TEAMS["clest"]};
 	} else if(i.includes("coast")) {
-		return {team: NCAA_TEAMS["cc"], exactMatch: true};
+		return {team: NCAA_TEAMS["cc"]};
 	} else if(i.includes("colorado")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["colst"], exactMatch: true};
+			return {team: NCAA_TEAMS["colst"]};
 		} else {
-			return {team: NCAA_TEAMS["co"], exactMatch: true};
+			return {team: NCAA_TEAMS["co"]};
 		}
+	} else if(i.includes("columbia")) {
+		return {team: NCAA_TEAMS["colu"]};		
 	} else if(i.includes("connecticut")) {
-		return {team: NCAA_TEAMS["con"], exactMatch: true};
+		return {team: NCAA_TEAMS["con"]};
 	} else if(i.includes("creighton")) {
-		return {team: NCAA_TEAMS["cre"], exactMatch: true};
+		return {team: NCAA_TEAMS["cre"]};
 	} else if(i.includes("denver")) {
-		return {team: NCAA_TEAMS["den"], exactMatch: true};
+		return {team: NCAA_TEAMS["den"]};
 	} else if(i.includes("paul")) {
-		return {team: NCAA_TEAMS["dep"], exactMatch: true};
+		return {team: NCAA_TEAMS["dep"]};
 	} else if(i.includes("detroit")) {
-		return {team: NCAA_TEAMS["det"], exactMatch: true};
+		return {team: NCAA_TEAMS["det"]};
 	} else if(i.includes("duke")) {
-		return {team: NCAA_TEAMS["duke"], exactMatch: true};
+		return {team: NCAA_TEAMS["duke"]};
 	} else if(i.includes("drexel")) {
-		return {team: NCAA_TEAMS["dre"], exactMatch: true};
+		return {team: NCAA_TEAMS["dre"]};
 	} else if(i.includes("east")) {
 		if(i.includes("carolina")) {
-			return {team: NCAA_TEAMS["ec"], exactMatch: true};
+			return {team: NCAA_TEAMS["ec"]};
 		} else if(i.includes("michigan")) {
-			return {team: NCAA_TEAMS["em"], exactMatch: false};
+			return {team: NCAA_TEAMS["em"]};
 		} else {
 			console.log("Couldn't find team with 'east' in the string", i);
 			return null;
 		}
 	} else if(i.includes("evansville")) {
-		return {team: NCAA_TEAMS["ev"], exactMatch: true};
+		return {team: NCAA_TEAMS["ev"]};
 	} else if(i.includes("fair") && i.includes("field")) {
-		return {team: NCAA_TEAMS["fai"], exactMatch: true};
+		return {team: NCAA_TEAMS["fai"]};
 	} else if(i.includes("fiu") || i.includes("f. i. u.") || (i.includes("florida") && i.includes("international"))) {
-		return {team: NCAA_TEAMS["fiu"], exactMatch: true};
+		return {team: NCAA_TEAMS["fiu"]};
 	} else if(i.includes("florida")) {
 		if(i.includes("atlantic")) {
-			return {team: NCAA_TEAMS["fla"], exactMatch: true};
+			return {team: NCAA_TEAMS["fla"]};
 		} else if(i.includes("state")) {
-			return {team: NCAA_TEAMS["flst"], exactMatch: true};
+			return {team: NCAA_TEAMS["flst"]};
 		} else if(i.includes("miami")) {
-			return {team: NCAA_TEAMS["miafl"], exactMatch: true};
+			return {team: NCAA_TEAMS["miafl"]};
 		} else if(i.includes("south")) {
-			return {team: NCAA_TEAMS["usf"], exactMatch: true};
+			return {team: NCAA_TEAMS["usf"]};
 		} else if(i.includes("central")) {
-			return {team: NCAA_TEAMS["ucf"], exactMatch: true};
+			return {team: NCAA_TEAMS["ucf"]};
 		} else if(i.includes("gulf") && i.includes("coast")) {
-			return {team: NCAA_TEAMS["flgc"], exactMatch: true};
+			return {team: NCAA_TEAMS["flgc"]};
 		} else if(i.includes("north")) {
-			return {team: NCAA_TEAMS["nfl"], exactMatch: true};
+			return {team: NCAA_TEAMS["nfl"]};
 		} else {
 			console.log("Defaulting to regular ol' Florida", i);
-			return {team: NCAA_TEAMS["fl"], exactMatch: false};
+			return {team: NCAA_TEAMS["fl"]};
 		}
+	} else if(i.includes("fordham")) {
+		return {team: NCAA_TEAMS["ford"]};
 	} else if(i.includes("fort") && i.includes("wayne")) {
-		return {team: NCAA_TEAMS["fo"], exactMatch: true};
+		return {team: NCAA_TEAMS["fo"]};
 	} else if(i.includes("fresno")) {
-		return {team: NCAA_TEAMS["fresno"], exactMatch: true};
+		return {team: NCAA_TEAMS["fresno"]};
 	} else if(i.includes("george")) {
 		if(i.includes("mason")) {
-			return {team: NCAA_TEAMS["geom"], exactMatch: true};
+			return {team: NCAA_TEAMS["geom"]};
 		} else if(i.includes("washington")) {
-			return {team: NCAA_TEAMS["geow"], exactMatch: true};
+			return {team: NCAA_TEAMS["geow"]};
 		} else {
 			console.log("Couldn't find george team", i); // todo
 			return null;
 		}
 	} else if(i.includes("georgia")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["gast"], exactMatch: true};
+			return {team: NCAA_TEAMS["gast"]};
 		} else if(i.includes("tech")) {
-			return {team: NCAA_TEAMS["gatech"], exactMatch: true};
+			return {team: NCAA_TEAMS["gatech"]};
 		} else {
 			console.log("Defaulting to regular ol' Georgia", i);		
-			return {team: NCAA_TEAMS["ga"], exactMatch: true};
+			return {team: NCAA_TEAMS["ga"]};
 		}
 	} else if(i.includes("gonzaga")) {
-		return {team: NCAA_TEAMS["gon"], exactMatch: true};
+		return {team: NCAA_TEAMS["gon"]};
 	} else if(i.includes("grand") && i.includes("canyon")) {
-		return {team: NCAA_TEAMS["gra"], exactMatch: true};
+		return {team: NCAA_TEAMS["gra"]};
 	} else if(i.includes("green") && i.includes("bay")) {
-		return {team: NCAA_TEAMS["gb"], exactMatch: true};
+		return {team: NCAA_TEAMS["gb"]};
+	} else if(i.includes("hartford")) {
+		return {team: NCAA_TEAMS["har"]};
 	} else if(i.includes("hawaii")) {
-		return {team: NCAA_TEAMS["haw"], exactMatch: true};
+		return {team: NCAA_TEAMS["haw"]};
 	} else if(i.includes("high") && i.includes("point")) {
-		return {team: NCAA_TEAMS["hp"], exactMatch: true};
+		return {team: NCAA_TEAMS["hp"]};
 	} else if(i.includes("hofstra")) {
-		return {team: NCAA_TEAMS["hof"], exactMatch: true};
+		return {team: NCAA_TEAMS["hof"]};
 	} else if(i.includes("houston")) {
-		return {team: NCAA_TEAMS["hou"], exactMatch: true};
+		return {team: NCAA_TEAMS["hou"]};
 	} else if(i.includes("idaho")) {
-		return {team: NCAA_TEAMS["id"], exactMatch: true};
+		return {team: NCAA_TEAMS["id"]};
 	} else if(i.includes("illinois")) {
 		if(i.includes("north")) {
-			return {team: NCAA_TEAMS["niu"], exactMatch: true};
+			return {team: NCAA_TEAMS["niu"]};
 		} else if(i.includes("chicago")) {
-			return {team: NCAA_TEAMS["uci"], exactMatch: true};
+			return {team: NCAA_TEAMS["uci"]};
 		}
-		return {team: NCAA_TEAMS["il"], exactMatch: true};
+		return {team: NCAA_TEAMS["il"]};
 	} else if(i.includes("indiana")) {
 		if(i.includes("purdue")) {
-			return {team: NCAA_TEAMS["iupui"], exactMatch: true};
+			return {team: NCAA_TEAMS["iupui"]};
+		} else if(i.includes("state")) {
+			return {team: NCAA_TEAMS["indst"]};
 		}
-		return {team: NCAA_TEAMS["ind"], exactMatch: true};
-	} else if(i.includes("iona")) {
-		return {team: NCAA_TEAMS["iona"], exactMatch: true};
+		return {team: NCAA_TEAMS["ind"]};
+	} else if(i.includes("iona") && !i.includes("national")) {
+		return {team: NCAA_TEAMS["iona"]};
 	} else if(i.includes("iowa")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["iast"], exactMatch: true};
+			return {team: NCAA_TEAMS["iast"]};
 		}
-		return {team: NCAA_TEAMS["ia"], exactMatch: true};
+		return {team: NCAA_TEAMS["ia"]};
 	} else if(i.includes("iupui")) {
-		return {team: NCAA_TEAMS["iupui"], exactMatch: true};
+		return {team: NCAA_TEAMS["iupui"]};
+	} else if(i.includes("jacksonville")) {
+		return {team: NCAA_TEAMS["jac"]};	
 	} else if(i.includes("kansas")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["kst"], exactMatch: true};
+			return {team: NCAA_TEAMS["kst"]};
 		}
-		return {team: NCAA_TEAMS["kan"], exactMatch: true};
+		return {team: NCAA_TEAMS["kan"]};
+	} else if(i.includes("kennesaw")) {
+		return {team: NCAA_TEAMS["kenn"]};	
 	} else if(i.includes("kentucky")) { // do before 'kent st'
 		if(i.includes("west")) {
-			return {team: NCAA_TEAMS["wky"], exactMatch: true};
+			return {team: NCAA_TEAMS["wky"]};
 		} else if(i.includes("north")) {
-			return {team: NCAA_TEAMS["nky"], exactMatch: true};
+			return {team: NCAA_TEAMS["nky"]};
 		}
-		return {team: NCAA_TEAMS["kent"], exactMatch: true};
+		return {team: NCAA_TEAMS["kent"]};
 	} else if(i.includes("kent")) {
-		return {team: NCAA_TEAMS["kentst"], exactMatch: true};
+		return {team: NCAA_TEAMS["kentst"]};
 	} else if(i.includes("salle")) {
-		return {team: NCAA_TEAMS["las"], exactMatch: true};
+		return {team: NCAA_TEAMS["las"]};
 	} else if(i.includes("lipscomb")) {
-		return {team: NCAA_TEAMS["lip"], exactMatch: true};
+		return {team: NCAA_TEAMS["lip"]};
 	} else if(i.includes("little") && i.includes("rock")) {
-		return {team: NCAA_TEAMS["lit"], exactMatch: true};
+		return {team: NCAA_TEAMS["lit"]};
 	} else if(i.includes("liu") || i.includes("l. i. u.")) {
-		return {team: NCAA_TEAMS["liu"], exactMatch: true};
+		return {team: NCAA_TEAMS["liu"]};
 	} else if(i.includes("long")) {
 		if(i.includes("beach")) {
-			return {team: NCAA_TEAMS["lb"], exactMatch: true};
+			return {team: NCAA_TEAMS["lb"]};
 		} else if(i.includes("wood")) {
-			return {team: NCAA_TEAMS["lon"], exactMatch: true};
+			return {team: NCAA_TEAMS["lon"]};
 		} else {
 			console.log("Couldn't find long team", i);
 			return null;
 		}
 	} else if(i.includes("lsu") || i.includes("l. s. u.")) {
-		return {team: NCAA_TEAMS["lsu"], exactMatch: true};
+		return {team: NCAA_TEAMS["lsu"]};
 	} else if(i.includes("louisiana")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["lsu"], exactMatch: true};
+			return {team: NCAA_TEAMS["lsu"]};
 		} else if(i.includes("tech")) {
-			return {team: NCAA_TEAMS["latech"], exactMatch: true};
+			return {team: NCAA_TEAMS["latech"]};
 		} else if(i.includes("fayette")) {
-			return {team: NCAA_TEAMS["lala"], exactMatch: true};
+			return {team: NCAA_TEAMS["lala"]};
 		} else if(i.includes("monroe")) {
-			return {team: NCAA_TEAMS["lamo"], exactMatch: true};
+			return {team: NCAA_TEAMS["lamo"]};
 		} else {
 			console.log("Couldn't find louisiana team", i);
 			return null;
 		}
 	} else if(i.includes("louisville")) {
-		return {team: NCAA_TEAMS["lou"], exactMatch: true};
+		return {team: NCAA_TEAMS["lou"]};
 	} else if(i.includes("loyola")) {
 		if(i.includes("chicago")) {
-			return {team: NCAA_TEAMS["loyc"], exactMatch: true};
+			return {team: NCAA_TEAMS["loyc"]};
 		} else if(i.includes("maryland") || i.includes("md")) {
-			return {team: NCAA_TEAMS["loymd"], exactMatch: true};
+			return {team: NCAA_TEAMS["loymd"]};
 		} else if(i.includes("mount")) {
-			return {team: NCAA_TEAMS["loym"], exactMatch: true};
+			return {team: NCAA_TEAMS["loym"]};
 		} else {
 			console.log("Couldn't find loyola team", i);
 			return null; // TODO tell user to be more specific!
 		}
+	} else if(i.includes("main")) {
+		return {team: NCAA_TEAMS["maine"]};	
 	} else if(i.includes("manhattan")) {
-		return {team: NCAA_TEAMS["man"], exactMatch: true};
+		return {team: NCAA_TEAMS["man"]};
 	} else if(i.includes("marshall")) {
-		return {team: NCAA_TEAMS["mars"], exactMatch: true};
+		return {team: NCAA_TEAMS["mars"]};
 	} else if(i.includes("marquette")) {
-		return {team: NCAA_TEAMS["marq"], exactMatch: true};
+		return {team: NCAA_TEAMS["marq"]};
 	} else if(i.includes("maryland")) {
 		if(i.includes("east") || i.includes("shore")) {
-			return {team: NCAA_TEAMS["mdes"], exactMatch: true};
+			return {team: NCAA_TEAMS["mdes"]};
 		}
-		return {team: NCAA_TEAMS["md"], exactMatch: true};
+		return {team: NCAA_TEAMS["md"]};
 	} else if(i.includes("mass")) {
 		if(i.includes("low")) {
-			return {team: NCAA_TEAMS["umassl"], exactMatch: true};
+			return {team: NCAA_TEAMS["umassl"]};
 		}
-		return {team: NCAA_TEAMS["mass"], exactMatch: true};
+		return {team: NCAA_TEAMS["mass"]};
 	} else if(i.includes("memphis")) {
-		return {team: NCAA_TEAMS["mem"], exactMatch: true};
+		return {team: NCAA_TEAMS["mem"]};
 	} else if(i.includes("michigan")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["mist"], exactMatch: true};
+			return {team: NCAA_TEAMS["mist"]};
 		} else if(i.includes("west")) {
-			return {team: NCAA_TEAMS["wmi"], exactMatch: true};
+			return {team: NCAA_TEAMS["wmi"]};
 		}
-		return {team: NCAA_TEAMS["mi"], exactMatch: true};
+		return {team: NCAA_TEAMS["mi"]};
 	} else if(i.includes("middle")) {
-		return {team: NCAA_TEAMS["midtenn"], exactMatch: true};
+		return {team: NCAA_TEAMS["midtenn"]};
 	} else if(i.includes("milwaukee")) {
-		return {team: NCAA_TEAMS["mil"], exactMatch: true};
+		return {team: NCAA_TEAMS["mil"]};
 	} else if(i.includes("minnesota")) {
-		return {team: NCAA_TEAMS["minn"], exactMatch: true};
+		return {team: NCAA_TEAMS["minn"]};
 	} else if(i.includes("miss") && (i.includes("ole") || i.includes("old"))) {
-		return {team: NCAA_TEAMS["ms"], exactMatch: true};
+		return {team: NCAA_TEAMS["ms"]};
 	} else if(i.includes("mississippi")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["msst"], exactMatch: true};
+			return {team: NCAA_TEAMS["msst"]};
 		}
-		return {team: NCAA_TEAMS["ms"], exactMatch: true};
+		return {team: NCAA_TEAMS["ms"]};
 	} else if(i.includes("missouri")) {
 		if(i.includes("kansas")) {
-			return {team: NCAA_TEAMS["umkc"], exactMatch: true};
+			return {team: NCAA_TEAMS["umkc"]};
 		}
-		return {team: NCAA_TEAMS["mo"], exactMatch: true};
+		return {team: NCAA_TEAMS["mo"]};
+	} else if(i.includes("monmouth")) {
+		return {team: NCAA_TEAMS["mon"]};	
 	} else if(i.includes("mount")) {
 		if(i.includes("mary")) {
-			return {team: NCAA_TEAMS["loym"], exactMatch: true};
+			return {team: NCAA_TEAMS["loym"]};
 		} else if(i.includes("saint") || i.includes("mary")) {
-			return {team: NCAA_TEAMS["msm"], exactMatch: true};
+			return {team: NCAA_TEAMS["msm"]};
 		} else {
 			console.log("Couldn't find mount team", i);
 			return null; // todo
 		}
+	} else if(i.includes("murray") && i.includes("state")) {
+		return {team: NCAA_TEAMS["murst"]};	
 	} else if(i.includes("navy")) {
-		return {team: NCAA_TEAMS["navy"], exactMatch: true};
+		return {team: NCAA_TEAMS["navy"]};
 	} else if(i.includes("nebraska")) {
-		return {team: NCAA_TEAMS["neb"], exactMatch: true};
+		return {team: NCAA_TEAMS["neb"]};
 	} else if(i.includes("nevada")) {
-		return {team: NCAA_TEAMS["nev"], exactMatch: true};
+		return {team: NCAA_TEAMS["nev"]};
+	} else if(i.includes("hampshire")) {
+		return {team: NCAA_TEAMS["nh"]};	
 	} else if(i.includes("mexico")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["nmst"], exactMatch: true};
+			return {team: NCAA_TEAMS["nmst"]};
 		}
-		return {team: NCAA_TEAMS["nm"], exactMatch: true};
+		return {team: NCAA_TEAMS["nm"]};
 	} else if(i.includes("niagara")) {
-		return {team: NCAA_TEAMS["nia"], exactMatch: true};
+		return {team: NCAA_TEAMS["nia"]};
 	} else if(i.includes("njit") || i.includes("n. j. i. t.") || (i.includes("new") && i.includes("jersey"))) {
-		return {team: NCAA_TEAMS["njit"], exactMatch: true};
+		return {team: NCAA_TEAMS["njit"]};
 	} else if(i.includes("carolina")) {
 		if(i.includes("east")) {
-			return {team: NCAA_TEAMS["ec"], exactMatch: true};
+			return {team: NCAA_TEAMS["ec"]};
 		} else if(i.includes("state")) {
-			return {team: NCAA_TEAMS["ncst"], exactMatch: true};
+			return {team: NCAA_TEAMS["ncst"]};
 		} else if(i.includes("north")) {
-			return {team: NCAA_TEAMS["nc"], exactMatch: true};
+			return {team: NCAA_TEAMS["nc"]};
 		} else if(i.includes("south")) {
 			if(i.includes("state")) {
-				return {team: NCAA_TEAMS["scu"], exactMatch: true};
+				return {team: NCAA_TEAMS["scu"]};
 			}
-			return {team: NCAA_TEAMS["sc"], exactMatch: true};
+			return {team: NCAA_TEAMS["sc"]};
 		} else {
 			console.log("Couldn't find carolina team", i);
 			return null;
 		}
 	} else if((i.includes("nc") || i.includes("n. c.")) && i.includes("state")) {
-		return {team: NCAA_TEAMS["ncst"], exactMatch: true};
+		return {team: NCAA_TEAMS["ncst"]};
 	} else if(i.includes("niu") || i.includes("n. i. u.")) {
-		return {team: NCAA_TEAMS["niu"], exactMatch: true};
+		return {team: NCAA_TEAMS["niu"]};
 	} else if(i.includes("north") && i.includes("east")) {
-		return {team: NCAA_TEAMS["ne"], exactMatch: true};
+		return {team: NCAA_TEAMS["ne"]};
 	} else if(i.includes("north") && i.includes("west")) {
-		return {team: NCAA_TEAMS["nw"], exactMatch: true};
+		return {team: NCAA_TEAMS["nw"]};
 	} else if(i.includes("notre") || i.includes("dame")) {
-		return {team: NCAA_TEAMS["nd"], exactMatch: true};
+		return {team: NCAA_TEAMS["nd"]};
 	} else if(i.includes("ohio")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["ohst"], exactMatch: true};
+			return {team: NCAA_TEAMS["ohst"]};
 		} else if(i.includes("miami")) {
-			return {team: NCAA_TEAMS["miaoh"], exactMatch: true};
+			return {team: NCAA_TEAMS["miaoh"]};
 		}
-		return {team: NCAA_TEAMS["oh"], exactMatch: true};
+		return {team: NCAA_TEAMS["oh"]};
 	} else if(i.includes("oklahoma")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["okst"], exactMatch: true};
+			return {team: NCAA_TEAMS["okst"]};
 		}
 		return {team: NCAA_TEAMS["ok"], exactMatch: false};
 	} else if(i.includes("oak") && i.includes("land")) {
-		return {team: NCAA_TEAMS["oak"], exactMatch: true};
+		return {team: NCAA_TEAMS["oak"]};
 	} else if(i.includes("oak") && i.includes("state")) {
-		return {team: NCAA_TEAMS["okst"], exactMatch: true};
+		return {team: NCAA_TEAMS["okst"]};
 	} else if(i.includes("dominion")) {
-		return {team: NCAA_TEAMS["od"], exactMatch: true};
+		return {team: NCAA_TEAMS["od"]};
 	} else if(i.includes("omaha")) {
-		return {team: NCAA_TEAMS["oma"], exactMatch: true};
+		return {team: NCAA_TEAMS["oma"]};
 	} else if(i.includes("oral")) {
-		return {team: NCAA_TEAMS["ora"], exactMatch: true};
+		return {team: NCAA_TEAMS["ora"]};
 	} else if(i.includes("oregon")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["orst"], exactMatch: true};
+			return {team: NCAA_TEAMS["orst"]};
 		}
-		return {team: NCAA_TEAMS["or"], exactMatch: true};
+		return {team: NCAA_TEAMS["or"]};
 	} else if(i.includes("pacific")) {
-		return {team: NCAA_TEAMS["pac"], exactMatch: true};
+		return {team: NCAA_TEAMS["pac"]};
 	} else if(i.includes("penn")) {
-		return {team: NCAA_TEAMS["ps"], exactMatch: true};
+		return {team: NCAA_TEAMS["ps"]};
 	} else if(i.includes("pepper")) {
-		return {team: NCAA_TEAMS["pep"], exactMatch: true};
+		return {team: NCAA_TEAMS["pep"]};
 	} else if(i.includes("pit")) {
-		return {team: NCAA_TEAMS["pit"], exactMatch: true};
+		return {team: NCAA_TEAMS["pit"]};
 	} else if(i.includes("portland")) {
-		return {team: NCAA_TEAMS["por"], exactMatch: true};
+		return {team: NCAA_TEAMS["por"]};
+	} else if(i.includes("princeton")) {
+		return {team: NCAA_TEAMS["pri"]};	
 	} else if(i.includes("providence")) {
-		return {team: NCAA_TEAMS["pro"], exactMatch: true};
+		return {team: NCAA_TEAMS["pro"]};
 	} else if(i.includes("purdue")) {
-		return {team: NCAA_TEAMS["pur"], exactMatch: true};
+		return {team: NCAA_TEAMS["pur"]};
 	} else if(i.includes("quinn")) {
-		return {team: NCAA_TEAMS["qui"], exactMatch: true};
+		return {team: NCAA_TEAMS["qui"]};
 	} else if(i.includes("radford")) {
-		return {team: NCAA_TEAMS["rad"], exactMatch: true};
+		return {team: NCAA_TEAMS["rad"]};
 	} else if(i.includes("rice")) {
-		return {team: NCAA_TEAMS["rice"], exactMatch: true};
+		return {team: NCAA_TEAMS["rice"]};
 	} else if(i.includes("rider")) {
-		return {team: NCAA_TEAMS["rid"], exactMatch: true};
+		return {team: NCAA_TEAMS["rid"]};
 	} else if(i.includes("rutgers")) {
-		return {team: NCAA_TEAMS["rut"], exactMatch: true};
+		return {team: NCAA_TEAMS["rut"]};
 	} else if(i.includes("diego")) {
-		return {team: NCAA_TEAMS["sdst"], exactMatch: true};
+		if(i.includes("state")) {
+			return {team: NCAA_TEAMS["sdst"]};
+		}
+		return {team: NCAA_TEAMS["sd"]};
 	} else if(i.includes("jose")) { // todo test
-		return {team: NCAA_TEAMS["sjst"], exactMatch: true};
+		return {team: NCAA_TEAMS["sjst"]};
 	} else if(i.includes("smu") || i.includes("s. m. u.") || i.includes("methodist")) {
-		return {team: NCAA_TEAMS["smu"], exactMatch: true};
+		return {team: NCAA_TEAMS["smu"]};
 	} else if(i.includes("miss") && i.includes("south")) {
-		return {team: NCAA_TEAMS["smi"], exactMatch: true};
+		return {team: NCAA_TEAMS["smi"]};
 	} else if(i.includes("saint")) {
 		if(i.includes("bon") || i.includes("adventure") || i.includes("bonaventure")) {
-			return {team: NCAA_TEAMS["stb"], exactMatch: true};
+			return {team: NCAA_TEAMS["stb"]};
 		} else if(i.includes("francisco")) {
 			return {team: NCAA_TEAMS["sanf"], exactMatch: false};
 		} else if(i.includes("john") || i.includes("jon")) {
-			return {team: NCAA_TEAMS["stj"], exactMatch: true};
+			return {team: NCAA_TEAMS["stj"]};
 		} else if(i.includes("joseph") || i.includes("joe")) {
-			return {team: NCAA_TEAMS["stjoe"], exactMatch: true};
+			return {team: NCAA_TEAMS["stjoe"]};
 		} else if(i.includes("louis")) {
-			return {team: NCAA_TEAMS["stl"], exactMatch: true};
+			return {team: NCAA_TEAMS["stl"]};
 		} else if(i.includes("mary")) {
-			return {team: NCAA_TEAMS["stm"], exactMatch: true};
+			return {team: NCAA_TEAMS["stm"]};
 		} else if(i.includes("francis") || i.includes("brooklyn")) {
-			return {team: NCAA_TEAMS["stf"], exactMatch: true};
+			return {team: NCAA_TEAMS["stf"]};
 		} else if(i.includes("clara")) {
 			return {team: NCAA_TEAMS["sant"], exactMatch: false};
 		} else {
@@ -1218,130 +1379,136 @@ function getNCAATeamName(input) {
 			return null; // todo
 		}
 	} else if(i.includes("francisco")) {
-		return {team: NCAA_TEAMS["sanf"], exactMatch: true};
+		return {team: NCAA_TEAMS["sanf"]};
 	} else if(i.includes("clara")) {
-		return {team: NCAA_TEAMS["sant"], exactMatch: true};
+		return {team: NCAA_TEAMS["sant"]};
 	} else if(i.includes("seattle")) {
-		return {team: NCAA_TEAMS["sea"], exactMatch: true};
+		return {team: NCAA_TEAMS["sea"]};
 	} else if(i.includes("seton") || i.includes("seedin")) {
-		return {team: NCAA_TEAMS["set"], exactMatch: true};
+		return {team: NCAA_TEAMS["set"]};
 	} else if(i.includes("siena")) {
-		return {team: NCAA_TEAMS["sie"], exactMatch: true};
+		return {team: NCAA_TEAMS["sie"]};
 	} else if(i.includes("siu") || i.includes("edwards")) {
-		return {team: NCAA_TEAMS["siu"], exactMatch: true};
+		return {team: NCAA_TEAMS["siu"]};
 	} else if(i.includes("stanford")) {
-		return {team: NCAA_TEAMS["sta"], exactMatch: true};
+		return {team: NCAA_TEAMS["sta"]};
+	} else if(i.includes("stetson")) {
+		return {team: NCAA_TEAMS["stet"]};	
+	} else if(i.includes("stony") && i.includes("brook")) {
+		return {team: NCAA_TEAMS["sb"]};	
 	} else if(i.includes("syracuse")) {
-		return {team: NCAA_TEAMS["syr"], exactMatch: true};
+		return {team: NCAA_TEAMS["syr"]};
 	} else if(i.includes("tcu") || i.includes("t. c. u.")) {
-		return {team: NCAA_TEAMS["tcu"], exactMatch: true};
+		return {team: NCAA_TEAMS["tcu"]};
 	} else if(i.includes("temple")) {
-		return {team: NCAA_TEAMS["tem"], exactMatch: true};
+		return {team: NCAA_TEAMS["tem"]};
 	} else if(i.includes("texas")) { 
 		if(i.includes("a and m")) { // todo test
 			if(i.includes("corp") || i.includes("christ")) {
-				return {team: NCAA_TEAMS["texamcc"], exactMatch: true};
+				return {team: NCAA_TEAMS["texamcc"]};
 			}
-			return {team: NCAA_TEAMS["texam"], exactMatch: true};
+			return {team: NCAA_TEAMS["texam"]};
 		} else if(i.includes("state")) {
-			return {team: NCAA_TEAMS["texst"], exactMatch: true};
+			return {team: NCAA_TEAMS["texst"]};
 		} else if(i.includes("tech")) {
-			return {team: NCAA_TEAMS["textc"], exactMatch: true};
+			return {team: NCAA_TEAMS["textc"]};
 		} else if(i.includes("north")) {
-			return {team: NCAA_TEAMS["nt"], exactMatch: true};
+			return {team: NCAA_TEAMS["nt"]};
 		} else if(i.includes("arlington")) {
-			return {team: NCAA_TEAMS["texar"], exactMatch: true};
+			return {team: NCAA_TEAMS["texar"]};
 		} else if(i.includes("rio") || i.includes("rgv")) {
-			return {team: NCAA_TEAMS["utrgv"], exactMatch: true};
+			return {team: NCAA_TEAMS["utrgv"]};
 		} else {
 			console.log("defaulting to regular ol' texas", i);
-			return {team: NCAA_TEAMS["tex"], exactMatch: true};
+			return {team: NCAA_TEAMS["tex"]};
 		}
 	} else if(i.includes("toledo")) {
-		return {team: NCAA_TEAMS["tol"], exactMatch: true};
+		return {team: NCAA_TEAMS["tol"]};
 	} else if(i.includes("troy")) {
-		return {team: NCAA_TEAMS["troy"], exactMatch: true};
+		return {team: NCAA_TEAMS["troy"]};
 	} else if(i.includes("tulane")) {
-		return {team: NCAA_TEAMS["tula"], exactMatch: true};
+		return {team: NCAA_TEAMS["tula"]};
 	} else if(i.includes("tulsa")) {
-		return {team: NCAA_TEAMS["tuls"], exactMatch: true};
+		return {team: NCAA_TEAMS["tuls"]};
 	} else if(i.includes("uab") || i.includes("u. a. b.") || i.includes("birmingham")) {
-		return {team: NCAA_TEAMS["uab"], exactMatch: true};
+		return {team: NCAA_TEAMS["uab"]};
 	} else if(i.includes("riverside")) {
-		return {team: NCAA_TEAMS["ucr"], exactMatch: true};
+		return {team: NCAA_TEAMS["ucr"]};
 	} else if(i.includes("irvine")) {
-		return {team: NCAA_TEAMS["uci"], exactMatch: true};
+		return {team: NCAA_TEAMS["uci"]};
 	} else if(i.includes("barbara")) {
-		return {team: NCAA_TEAMS["ucb"], exactMatch: true};
+		return {team: NCAA_TEAMS["ucb"]};
 	} else if(i.includes("asheville")) {
-		return {team: NCAA_TEAMS["unca"], exactMatch: true};
+		return {team: NCAA_TEAMS["unca"]};
 	} else if(i.includes("greens")) {
-		return {team: NCAA_TEAMS["uncg"], exactMatch: true};
+		return {team: NCAA_TEAMS["uncg"]};
 	} else if(i.includes("wilmington")) {
-		return {team: NCAA_TEAMS["uncw"], exactMatch: true};
+		return {team: NCAA_TEAMS["uncw"]};
 	} else if(i.includes("ucf") || i.includes("u. c. f.")) {
-		return {team: NCAA_TEAMS["ucf"], exactMatch: true};
+		return {team: NCAA_TEAMS["ucf"]};
 	} else if(i.includes("ucla") || i.includes("u. c. l. a.") || i.includes("angeles")) {
-		return {team: NCAA_TEAMS["ucla"], exactMatch: true};
+		return {team: NCAA_TEAMS["ucla"]};
 	} else if(i.includes("uic")) {
-		return {team: NCAA_TEAMS["uic"], exactMatch: true};
+		return {team: NCAA_TEAMS["uic"]};
 	} else if(i.includes("umbc") || (i.includes("baltimore") && i.includes("maryland"))) {
-		return {team: NCAA_TEAMS["umbc"], exactMatch: true};
+		return {team: NCAA_TEAMS["umbc"]};
 	} else if(i.includes("umkc")) {
-		return {team: NCAA_TEAMS["umkc"], exactMatch: true};
+		return {team: NCAA_TEAMS["umkc"]};
 	} else if(i.includes("unlv") || i.includes("u. n. l. v.") || i.includes("vegas")) {
-		return {team: NCAA_TEAMS["unlv"], exactMatch: true};
+		return {team: NCAA_TEAMS["unlv"]};
 	} else if(i.includes("usc") || i.includes("u. s. c.") || (i.includes("south") && i.includes("california"))) {
-		return {team: NCAA_TEAMS["usc"], exactMatch: true};
+		return {team: NCAA_TEAMS["usc"]};
 	} else if(i.includes("utah")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["utst"], exactMatch: true};
+			return {team: NCAA_TEAMS["utst"]};
 		} else if(i.includes("valley")) {
-			return {team: NCAA_TEAMS["utv"], exactMatch: true};
+			return {team: NCAA_TEAMS["utv"]};
 		}
-		return {team: NCAA_TEAMS["utah"], exactMatch: true};
+		return {team: NCAA_TEAMS["utah"]};
 	} else if(i.includes("utep") || i.includes("u. t. e. p.") || i.includes("paso")) {
-		return {team: NCAA_TEAMS["utep"], exactMatch: true};
+		return {team: NCAA_TEAMS["utep"]};
 	} else if(i.includes("utrgv") || i.includes("u. t. r. g. v.")) {
-		return {team: NCAA_TEAMS["utrgv"], exactMatch: true};
+		return {team: NCAA_TEAMS["utrgv"]};
 	} else if(i.includes("utsa") || i.includes("u. t. s. a.") || i.includes("antonio")) {
-		return {team: NCAA_TEAMS[""], exactMatch: true};
+		return {team: NCAA_TEAMS[""]};
 	} else if(i.includes("vanderbilt")) {
-		return {team: NCAA_TEAMS["van"], exactMatch: true};
+		return {team: NCAA_TEAMS["van"]};
 	} else if(i.includes("vcu") || i.includes("v. c. u.")) {
-		return {team: NCAA_TEAMS["vcu"], exactMatch: true};
+		return {team: NCAA_TEAMS["vcu"]};
 	} else if(i.includes("vermont")) {
-		return {team: NCAA_TEAMS["ver"], exactMatch: true};
+		return {team: NCAA_TEAMS["ver"]};
 	} else if(i.includes("virginia")) {
 		if(i.includes("west")) {
-			return {team: NCAA_TEAMS["wv"], exactMatch: true};
+			return {team: NCAA_TEAMS["wv"]};
 		} else if(i.includes("tech")) {
-			return {team: NCAA_TEAMS["vatech"], exactMatch: true};
+			return {team: NCAA_TEAMS["vatech"]};
 		} else if(i.includes("common") || i.includes("wealth")) {
-			return {team: NCAA_TEAMS["vcu"], exactMatch: true};
+			return {team: NCAA_TEAMS["vcu"]};
 		}
-		return {team: NCAA_TEAMS["va"], exactMatch: true};
+		return {team: NCAA_TEAMS["va"]};
 	} else if(i.includes("wvu")) {
-		return {team: NCAA_TEAMS["wv"], exactMatch: true};
+		return {team: NCAA_TEAMS["wv"]};
 	} else if(i.includes("wake") || i.includes("forest")) {
-		return {team: NCAA_TEAMS["wake"], exactMatch: true};
+		return {team: NCAA_TEAMS["wake"]};
 	} else if(i.includes("washington")) {
 		if(i.includes("state")) {
-			return {team: NCAA_TEAMS["wasst"], exactMatch: true};
+			return {team: NCAA_TEAMS["wasst"]};
 		}
-		return {team: NCAA_TEAMS["was"], exactMatch: true};
+		return {team: NCAA_TEAMS["was"]};
 	} else if(i.includes("wichita")) {
-		return {team: NCAA_TEAMS["wic"], exactMatch: true};
+		return {team: NCAA_TEAMS["wic"]};
 	} else if(i.includes("winthrop")) {
-		return {team: NCAA_TEAMS["win"], exactMatch: true};
+		return {team: NCAA_TEAMS["win"]};
 	} else if(i.includes("wisconsin")) {
-		return {team: NCAA_TEAMS["wis"], exactMatch: true};
+		return {team: NCAA_TEAMS["wis"]};
 	} else if(i.includes("state") && i.includes("right")) {
-		return {team: NCAA_TEAMS["wrs"], exactMatch: true};
+		return {team: NCAA_TEAMS["wrs"]};
 	} else if(i.includes("wyoming")) {
-		return {team: NCAA_TEAMS["wy"], exactMatch: true};
+		return {team: NCAA_TEAMS["wy"]};
 	} else if(i.includes("xavier")) {
-		return {team: NCAA_TEAMS["xav"], exactMatch: true};
+		return {team: NCAA_TEAMS["xav"]};
+	} else if(i.includes("yale")) {
+		return {team: NCAA_TEAMS["yale"]};	
 	} else {
 		return null;
 	}
@@ -1747,3 +1914,4 @@ function getNHLTeamName(input) {
 		return null;
 	}
 }
+
