@@ -215,7 +215,7 @@ var NCAA_TEAMS = {
 	"hc" : {name: "Holy Cross", football: false},
 	"houb" : {name: "Houston Baptist", football: false},
 	"how" : {name: "Howard", football: false},
-	"hou" : {name: "Houston University", football: true},
+	"hou" : {name: "Houston", football: true},
 	"id" : {name: "Idaho", football: true},
 	"idst" : {name: "Idaho State", football: false},
 	"il" : {name: "Illinois", football: true},
@@ -305,7 +305,7 @@ var NCAA_TEAMS = {
 	"nt" : {name: "North Texas", football: false},
 	"ne" : {name: "Northeastern", football: false},
 	"naz" : {name: "Northern Arizona", football: false},
-	"nco": {name: "Northern Colorado", football: false},
+	"nco": {name: "No. Colorado", football: false},
 	"niu" : {name: "NIU", football: true}, // todo
 	"niowa" : {name: "Northern Iowa", football: false},
 	"nky" : {name: "Northern Kentucky", football: false},
@@ -548,7 +548,6 @@ function searchByTeamNameIntentHandler() {
 		var self = this;
 		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, team, league) {
 				parseString(retVal, function(err, lines) {
-					console.log("got", lines);
 					var found = false;
 					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
 					if(!lines || !lines.bestlinesports_line_feed) {
@@ -560,6 +559,10 @@ function searchByTeamNameIntentHandler() {
 					var speech;
 					for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
 						var game = lines.bestlinesports_line_feed.event[i];
+						//console.log("GAME", JSON.stringify(game));
+						if(game.period[0].period_description[0] !== 'Game') {
+							continue;
+						}
 						var team1 = lines.bestlinesports_line_feed.event[i].participant[0];
 						var team2 = lines.bestlinesports_line_feed.event[i].participant[1];	
 						if(team1.participant_name[0] === teamParsed) {
@@ -605,7 +608,7 @@ function searchByTeamNameIntentHandler() {
 						} // TODO handle neutral site games
 						if(found) {
 							result['ou'] = game.period[0].total[0].total_points;
-							if(result['ou']) {
+							if(result['ou'] && result['ou'] != '' && result['ou'] != ' ') {
 								speech += "The over under is " + result['ou'] + " points. ";
 							}
 							console.log("Result", result);
@@ -620,7 +623,7 @@ function searchByTeamNameIntentHandler() {
 					self.attributes.lastSearch = result;
 					self.attributes.lastSearch.speech = speech;
 					
-					console.log("Going to return: " + speech);
+					console.log("Going to return: " + speech, "card=", card);
 					if(!card) {
 						self.emit(":tell", speech);
 					} else {
@@ -763,7 +766,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 			teamObj = getNFLTeamName(teamOne);
 			league = "NFL";
 			if(!teamObj || !teamObj.exactMatch) {
-				var ncaa = getNCAATeamName(teamOne);
+				var ncaa = getNCAATeamName(teamOne); // dont override teamObj in case its a non-exact match
 				if(ncaa) {
 					teamObj = ncaa;
 					league = "CFB";
@@ -774,8 +777,11 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 			teamObj = getNBATeamName(teamOne);
 			league = "NBA";			
 			if(!teamObj) {
-				teamObj = getNCAATeamName(teamOne);
-				league = "CBB";
+				var ncaa = getNCAATeamName(teamOne); // dont override teamObj in case its a non-exact match
+				if(ncaa) {
+					teamObj = ncaa;
+					league = "CFB";
+				}
 			}	
 		} else {
 			console.log("unknown league");
@@ -815,10 +821,11 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 		// we only have 1 team name to work with.
 		teamObj = getNFLTeamName(teamOne);
 		if(!teamObj || !teamObj.exactMatch) {
+
 			var ncaa = getNCAATeamName(teamOne);
 			if(ncaa) {
 				teamObj = ncaa;
-				if(!teamObj.team.football) {
+				if(teamObj && !teamObj.team.football) {
 					// team doesn't have a football team. must be BB 
 					console.log(teamOne + " is a basketball only school.");
 					league = "CBB";
@@ -874,6 +881,15 @@ function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad, league) {
 	console.log("spreadToSpeech", spread);
 	var where = teamOneOnTheRoad ? "on the road" : "at home";
 	var singular = (league === "CFB" || league === "CBB");
+
+	// change "No." to "North"
+	// could check for 'northern' as opposed to 'north' .. but I'm lazy
+	if(teamOne.includes("No.")) {
+		teamOne = teamOne.replace("No.", "North");
+	}
+	if(teamTwo.includes("No.")) {
+		teamTwo = teamTwo.replace("No.", "North");
+	}
 
 	var speech;
 	if(singular) {
@@ -941,7 +957,7 @@ function getNCAATeamName(input) {
 		if(i.includes("state")) {
 			return {team: NCAA_TEAMS["azst"]};
 		} else if(i.includes("north")) {
-			return {team: NCAA_TEAMS["nax"]};
+			return {team: NCAA_TEAMS["naz"]};
 		} else {
 			return {team: NCAA_TEAMS["az"]};
 		}
@@ -966,7 +982,7 @@ function getNCAATeamName(input) {
 		return {team: NCAA_TEAMS["ausp"]};
 	} else if(i.includes("ball state")) {
 		return {team: NCAA_TEAMS["ballst"]};
-	} else if(i.includes("baylor")) {
+	} else if(i.includes("baylor") || i.includes("bailey")) { // wth alexa
 		return {team: NCAA_TEAMS["bay"]};
 	} else if(i.includes("belmont")) {
 		return {team: NCAA_TEAMS["bel"]};
@@ -1449,7 +1465,7 @@ function getNCAATeamName(input) {
 		return {team: NCAA_TEAMS["norfst"]};
 	} else if(i.includes("njit") || i.includes("n. j. i. t.") || (i.includes("new") && i.includes("jersey"))) {
 		return {team: NCAA_TEAMS["njit"]};
-	} else if(i.includes("nccu") || i.includes("n. c. c. u.") {
+	} else if(i.includes("nccu") || i.includes("n. c. c. u.")) {
 		return {team: NCAA_TEAMS["nccu"]};
 	} else if((i.includes("nc ") || i.includes("n. c.")) && i.includes("state")) {
 		return {team: NCAA_TEAMS["ncst"]};
@@ -1458,7 +1474,7 @@ function getNCAATeamName(input) {
 	} else if(i.includes("north") && i.includes("east")) {
 		return {team: NCAA_TEAMS["ne"]};
 	} else if(i.includes("north") && i.includes("west")) {
-		if(i.incudes("state")) {
+		if(i.includes("state")) {
 			return {team: NCAA_TEAMS["nwst"]};
 		}
 		return {team: NCAA_TEAMS["nw"]};
@@ -1493,9 +1509,8 @@ function getNCAATeamName(input) {
 		return {team: NCAA_TEAMS["or"]};
 	} else if(i.includes("pacific")) {
 		return {team: NCAA_TEAMS["pac"]};
-	} else if(i.includes("pen") && i.includes("state") {
+	} else if(i.includes("pen") && i.includes("state")) {
 		return {team: NCAA_TEAMS["ps"]};
-	}
 	} else if(i.includes("pepper")) {
 		return {team: NCAA_TEAMS["pep"]};
 	} else if(i.includes("pit")) {
@@ -1687,7 +1702,7 @@ function getNCAATeamName(input) {
 		return {team: NCAA_TEAMS["utrgv"]};
 	} else if(i.includes("utsa") || i.includes("u. t. s. a.") || i.includes("antonio")) {
 		return {team: NCAA_TEAMS["utsa"]};
-	} else if(i.includes("valparaiso")) {
+	} else if(i.includes("valparaiso") || i.includes("valparaíso")) {
 		return {team: NCAA_TEAMS["valp"]};
 	} else if(i.includes("vanderbilt")) {
 		return {team: NCAA_TEAMS["van"]};
