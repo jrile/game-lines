@@ -39,7 +39,7 @@ var NFL_TEAMS = {
 	"buf": {name: "Buffalo Bills"},
 	"car": {name: "Carolina Panthers"},
 	"chi": {name: "Chicago Bears"},
-	"cin": {name: "Cincinatti Bengals"},
+	"cin": {name: "Cincinnati Bengals"},
 	"cle": {name: "Cleveland Browns"},
 	"dal": {name: "Dallas Cowboys"},
 	"den": {name: "Denver Broncos"},
@@ -80,7 +80,7 @@ var NBA_TEAMS = {
 	"gs": {name: "Golden State Warriors"},	
 	"hou": {name: "Houston Rockets"},
 	"ind": {name: "Indiana Pacers"},
-	"lac": {name: "LA Clippers"},
+	"lac": {name: "Los Angeles Clippers"},
 	"lal": {name: "Los Angeles Lakers"},
 	"mem": {name: "Memphis Grizzlies"},
 	"mia": {name: "Miami Heat"},
@@ -569,7 +569,7 @@ function searchByTeamNameIntentHandler() {
 					
 						for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
 							var game = lines.bestlinesports_line_feed.event[i];
-							if(DEBUG) {
+							if(DEBUG && false) {
 								console.log("GAME", JSON.stringify(game));
 							}
 							if(game.period[0].period_description[0] !== 'Game') {
@@ -600,6 +600,7 @@ function searchByTeamNameIntentHandler() {
 									speech = spreadToSpeech(line, teamParsed, team2.participant_name[0], onTheRoad, league);
 								}
 								result["teamOne"] = teamParsed;
+								result["teamOneOnTheRoad"] = onTheRoad;
 								result['teamTwo'] = team2.participant_name[0];
 								result['teamOneML'] = team1.odds[0].moneyline;
 								result['teamTwoML'] = team2.odds[0].moneyline;
@@ -621,6 +622,7 @@ function searchByTeamNameIntentHandler() {
 									speech = spreadToSpeech(line, teamParsed, team1.participant_name[0], onTheRoad, league);
 								}
 								result["teamOne"] = teamParsed;
+								result["teamOneOnTheRoad"] = onTheRoad;
 								result['teamTwo'] = team1.participant_name[0];
 								result['teamOneML'] = team2.odds[0].moneyline;
 								result['teamTwoML'] = team1.odds[0].moneyline;
@@ -658,13 +660,19 @@ function searchByTeamNameIntentHandler() {
 					if(!card) {
 						self.emit(":tell", speech);
 					} else {
-						var cardTitle = result['teamOne'] + " vs. " + result['teamTwo'] + " odds";
+						var cardTitle;
+						if(result["teamOneOnTheRoad"]) {
+							cardTitle = result['teamTwo'] + " vs. " + result['teamOne'] + " odds";
+						} else {
+							cardTitle = result['teamOne'] + " vs. " + result['teamTwo'] + " odds";
+						}
 						var cardContent = speech;
 						self.emit(":tellWithCard", speech, cardTitle, cardContent);
 					}
 				}); 
 		}, function() {
-			self.emit(":tell", getCouldntFindTeamError(teams));
+			var temp = [teamOne];
+			self.emit(":tell", getCouldntFindTeamError(temp));
 		});
 	} else {
 		console.error("Don't have team one to search!");
@@ -678,11 +686,11 @@ function searchByTeamNameIntentHandler() {
 // =====================================================================================================
 
 function getGenericHelpMessage(){
-	return "You can ask game lines for any upcoming game, for example 'the steelers,' or more specifically 'the West Virginia basketball game.'";
+	return "You can ask game lines for the odds to any upcoming game, for example 'the Steelers' or 'the Duke basketball game.'";
 }
 
 function getMoreSpecificError(userInput) {
-	return "I couldn't find odds for " + appendThe(userInput) + " game taking place today. Please try again and tell me specifically which sport to search for.";
+	return "I couldn't find odds for " + appendThe(userInput) + " game taking place today. Please try again and tell me specifically which team name and sport to search for.";
 }
 
 function getLeagueName(leagueName) {
@@ -714,7 +722,10 @@ function getCouldntFindOddsError(teams) {
 }
 
 function getCouldntFindTeamError(userInput) {
-	return "I couldn't find a team with the name " + userInput + ". Please try again.";
+	if(userInput && userInput !== "the") {
+		return "I couldn't find a team with the name " + userInput + ". Please try again.";
+	}
+	return "I couldn't find the team you asked for. Please try again.";
 }
 
 exports.handler = function(event, context, callback) {
@@ -1858,16 +1869,16 @@ function getNBATeamName(input) {
 	
 	if(i.includes("hawks")) {
 		return {team: NBA_TEAMS["atl"], exactMatch: true};
-	} else if(i.includes("atlanta")) {
+	} else if(i.includes("atlanta") || i.includes("that lana")) {
 		return {team: NBA_TEAMS["atl"], exactMatch: false};
 	} else if(i.includes("celtics")) {
 		return {team: NBA_TEAMS["bos"], exactMatch: true};
 	} else if(i.includes("boston")) {
 		return {team: NBA_TEAMS["bos"], exactMatch: false};
-	}  else if(i.includes("hornets")) {
-		return {team: NBA_TEAMS["cha"], exactMatch: true};
-	} else if(i.includes("hornets")) {
+	} else if(i.includes("charlotte")) {
 		return {team: NBA_TEAMS["cha"], exactMatch: false};
+	} else if(i.includes("hornets")) {
+		return {team: NBA_TEAMS["cha"], exactMatch: true};
 	} else if(i.includes("nets")) { // needs to be AFTER hornets.
 		return {team: NBA_TEAMS["bro"], exactMatch: true};
 	} else if(i.includes("brooklyn")) {
@@ -1895,7 +1906,7 @@ function getNBATeamName(input) {
 	} else if(i.includes("warriors")) {
 		return {team: NBA_TEAMS["gs"], exactMatch: true};
 	} else if(i.includes("golden")) {
-		return {team: NBA_TEAMS["gs"], exactMatch: false};
+		return {team: NBA_TEAMS["gs"], exactMatch: true}; // todo not exact match when raiders move, or if NHL implemented
 	} else if(i.includes("rockets")) {
 		return {team: NBA_TEAMS["hou"], exactMatch: true};
 	} else if(i.includes("houston")) {
@@ -1934,12 +1945,12 @@ function getNBATeamName(input) {
 		return {team: NBA_TEAMS["ny"], exactMatch: false};
 	} else if(i.includes("thunder")) {
 		return {team: NBA_TEAMS["okc"], exactMatch: true};
-	} else if(i.includes("oklahoma")) {
-		return {team: NBA_TEAMS["okc"], exactMatch: false};
+	} else if(i.includes("oklahoma") && i.includes("city")) {
+		return {team: NBA_TEAMS["okc"], exactMatch: true};
 	} else if(i.includes("magic")) {
 		return {team: NBA_TEAMS["orl"], exactMatch: true};
 	} else if(i.includes("orlando")) {
-		return {team: NBA_TEAMS["orl"], exactMatch: false};
+		return {team: NBA_TEAMS["orl"], exactMatch: true};
 	} else if(i.includes("seventy") || i.includes("sixers")) {
 		return {team: NBA_TEAMS["phi"], exactMatch: true};
 	} else if(i.includes("philadelphia") || i.includes("philly")) {
@@ -1947,7 +1958,7 @@ function getNBATeamName(input) {
 	} else if(i.includes("suns")) {
 		return {team: NBA_TEAMS["pho"], exactMatch: true};
 	} else if(i.includes("phoenix")) {
-		return {team: NBA_TEAMS["pho"], exactMatch: false};
+		return {team: NBA_TEAMS["pho"], exactMatch: true};
 	} else if(i.includes("trail") || i.includes("blazer")) {
 		return {team: NBA_TEAMS["por"], exactMatch: true};
 	} else if(i.includes("portland")) {
@@ -1963,7 +1974,7 @@ function getNBATeamName(input) {
 	} else if(i.includes("raptors")) {
 		return {team: NBA_TEAMS["tor"], exactMatch: true};
 	} else if(i.includes("toronto")) {
-		return {team: NBA_TEAMS["tor"], exactMatch: false};
+		return {team: NBA_TEAMS["tor"], exactMatch: true}; // todo not exact match when NHL implemented
 	} else if(i.includes("jazz")) {
 		return {team: NBA_TEAMS["utah"], exactMatch: true};
 	} else if(i.includes("utah")) {
@@ -1991,7 +2002,7 @@ function getNFLTeamName(input) {
 		return {team: NFL_TEAMS["az"], exactMatch: false};
 	} else if(i.includes("falcons")) {
 		return {team: NFL_TEAMS["atl"], exactMatch: true};
-	} else if(i.includes("atlanta")) {
+	} else if(i.includes("atlanta") || i.includes("that lana")) {
 		return {team: NFL_TEAMS["atl"], exactMatch: false};
 	} else if(i.includes("ravens")) {
 		return {team: NFL_TEAMS["bal"], exactMatch: true};
@@ -2009,9 +2020,9 @@ function getNFLTeamName(input) {
 		return {team: NFL_TEAMS["chi"], exactMatch: true};
 	} else if(i.includes("chicago")) {
 		return {team: NFL_TEAMS["chi"], exactMatch: false};
-	} else if(i.includes("bengals")) {
+	} else if(i.includes("bengals") || i.includes("bangles")) {
 		return {team: NFL_TEAMS["cin"], exactMatch: true};
-	} else if(i.includes("cincinatti")) {
+	} else if(i.includes("cincinnati")) {
 		return {team: NFL_TEAMS["cin"], exactMatch: false};
 	} else if(i.includes("browns")) {
 		return {team: NFL_TEAMS["cle"], exactMatch: true};
@@ -2032,7 +2043,7 @@ function getNFLTeamName(input) {
 	} else if(i.includes("packers")) {
 		return {team: NFL_TEAMS["gb"], exactMatch: true};
 	} else if(i.includes("green bay")) {
-		return {team: NFL_TEAMS["gb"], exactMatch: true};
+		return {team: NFL_TEAMS["gb"], exactMatch: false};
 	} else if(i.includes("texans")) {
 		return {team: NFL_TEAMS["hou"], exactMatch: true};
 	} else if(i.includes("houston")) {
@@ -2040,7 +2051,7 @@ function getNFLTeamName(input) {
 	} else if(i.includes("colts")) {
 		return {team: NFL_TEAMS["ind"], exactMatch: true};
 	} else if(i.includes("indianapolis")) {
-		return {team: NFL_TEAMS["ind"], exactMatch: false};
+		return {team: NFL_TEAMS["ind"], exactMatch: true};
 	} else if(i.includes("jaguars") || i.includes("jags")) {
 		return {team: NFL_TEAMS["jax"], exactMatch: true};
 	} else if(i.includes("jacksonville")) {
@@ -2063,8 +2074,8 @@ function getNFLTeamName(input) {
 		return {team: NFL_TEAMS["min"], exactMatch: false};
 	} else if(i.includes("patriots")) {
 		return {team: NFL_TEAMS["ne"], exactMatch: true};
-	} else if(i.includes("england")) {
-		return {team: NFL_TEAMS["ne"], exactMatch: false};
+	} else if(i.includes("new") && i.includes("england")) {
+		return {team: NFL_TEAMS["ne"], exactMatch: true};
 	} else if(i.includes("saints")) {
 		return {team: NFL_TEAMS["no"], exactMatch: true};
 	} else if(i.includes("orleans")) {
@@ -2085,7 +2096,7 @@ function getNFLTeamName(input) {
 		return {team: NFL_TEAMS["pit"], exactMatch: true};
 	} else if(i.includes("pittsburgh")) {
 		return {team: NFL_TEAMS["pit"], exactMatch: false};
-	} else if(i.includes("forty niner")) {
+	} else if(i.includes("forty niner") || (i.includes("40") && i.includes("nine"))) {
 		return {team: NFL_TEAMS["sf"], exactMatch: true};
 	} else if(i.includes("san fran") || i.includes("francisco")) {
 		return {team: NFL_TEAMS["sf"], exactMatch: false};
@@ -2096,7 +2107,7 @@ function getNFLTeamName(input) {
 	} else if(i.includes("buccaneers") || i.includes("bucks")) {
 		return {team: NFL_TEAMS["tb"], exactMatch: true};
 	} else if(i.includes("tampa")) {
-		return {team: NFL_TEAMS["tb"], exactMatch: false};
+		return {team: NFL_TEAMS["tb"], exactMatch: true}; // todo not exact match if NHL
 	} else if(i.includes("titans")) {
 		return {team: NFL_TEAMS["ten"], exactMatch: true};
 	} else if(i.includes("tennessee")) {
