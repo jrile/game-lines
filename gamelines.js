@@ -8,6 +8,7 @@ var s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 var APP_ID = "amzn1.ask.skill.b012474e-0a43-4bf7-95a5-ca1496fe65fd";
 
+var DEBUG = true;
 
 var S3_BUCKET_NAME = "gamelines";
 var HOURS_TO_KEEP_ODDS = 3;
@@ -74,7 +75,7 @@ var NBA_TEAMS = {
 	"chi": {name: "Chicago Bulls"},
 	"cle": {name: "Cleveland Cavaliers"},
 	"dal": {name: "Dallas Mavericks"},
-	"den": {name: "Denver Mavericks"},
+	"den": {name: "Denver Nuggets"},
 	"det": {name: "Detroit Pistons"},
 	"gs": {name: "Golden State Warriors"},	
 	"hou": {name: "Houston Rockets"},
@@ -260,7 +261,7 @@ var NCAA_TEAMS = {
 	"marq" : {name: "Marquette", football: false},
 	"mars" : {name: "Marshall", football: true},
 	"md" : {name: "Maryland", football: true},
-	"mdes" : {name: "Maryland Eastern Shore", football: false}, // todo
+	"mdes" : {name: "MD Eastern Shore", football: false}, // todo
 	"mass" : {name: "Massachusetts", football: true},
 	"mcn" : {name: "McNeese State", football: false},
 	"mer" : {name: "Mercer", football: false},
@@ -402,13 +403,13 @@ var NCAA_TEAMS = {
 	"tula" : {name: "Tulane", football: true},
 	"tuls" : {name: "Tulsa", football: true},
 	"uab" : {name: "UAB", football: true},
-	"ucda" : {name: "Cal Davis", football: false},
-	"ucr" : {name: "Cal Riverside", football: false}, // todo
-	"uci" : {name: "Cal Irvine", football: false},
+	"ucda" : {name: "UC Davis", football: false}, // good for BO
+	"ucr" : {name: "UC Riverside", football: false}, // todo
+	"uci" : {name: "UC Irvine", football: false},
 	"ucsb" : {name: "Cal Santa Barbara", football: false},
 	"ucf" : {name: "Central Florida", football: true},
 	"ucla" : {name: "UCLA", football: true},
-	"uic" : {name: "UIC", football: false},
+	"uic" : {name: "Illinois Chicago", football: false},
 	"umassl" : {name: "UMass Lowell", football: false}, // todo
 	"umbc" : {name: "UMBC", football: false}, //todo
 	"umkc" : {name: "UMKC", football: false},//todo
@@ -546,83 +547,113 @@ function searchByTeamNameIntentHandler() {
 			console.log("sports event:", sportsEvent);
 		}
 		var self = this;
-		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, team, league) {
+		getAllLines(teamOne, teamTwo, sportsEvent, function(retVal, teams, league) {
+				if(DEBUG) { 
+					console.log("using S3 file", league); 
+					console.log("searching these", teams);
+				}
+
 				parseString(retVal, function(err, lines) {
+					var speech = "";
+					var result = {};
 					var found = false;
-					var teamParsed = (team && team['team']) ? team['team']['name'] : null;
+
 					if(!lines || !lines.bestlinesports_line_feed) {
 						console.error("No spreads returned!");
 						speech = getCouldntFindOddsError(teamParsed);
 						found = true; // nothing to parse.
 					}
-					var result = {"teamOne" : teamParsed};
-					var speech;
-					for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
-						var game = lines.bestlinesports_line_feed.event[i];
-						//console.log("GAME", JSON.stringify(game));
-						if(game.period[0].period_description[0] !== 'Game') {
-							continue;
+
+					for(var teamIdx = 0; teamIdx < teams.length && !found; teamIdx++) {
+						var teamParsed = (teams && teams[teamIdx] && teams[teamIdx]['team']) ? teams[teamIdx]['team']['name'] : null;
+					
+						for(var i = 0; i < lines.bestlinesports_line_feed.event.length && !found; i++) {
+							var game = lines.bestlinesports_line_feed.event[i];
+							if(DEBUG) {
+								console.log("GAME", JSON.stringify(game));
+							}
+							if(game.period[0].period_description[0] !== 'Game') {
+								continue;
+							}
+							var team1 = lines.bestlinesports_line_feed.event[i].participant[0];
+							var team2 = lines.bestlinesports_line_feed.event[i].participant[1];	
+							if(DEBUG) {
+								console.log("Checking", teamParsed, "against", team1.participant_name[0], team2.participant_name[0]);
+							}
+							if(team1.participant_name[0] === teamParsed) {
+								var onTheRoad = (team1.visiting_home_draw[0] === "Visiting");
+								var line;	
+								if(league === "ALL") {
+									league = getLeagueName(game.league[0]);
+								}								
+								if(onTheRoad) {
+									line = result['line'] = game.period[0].spread[0].spread_visiting[0];
+								} else {
+									line = result['line'] = game.period[0].spread[0].spread_home[0];
+								}
+								if(line === '') {
+									speech = noSpread(teamParsed, team2.participant_name[0], league);
+								} else {
+									if(league === "ALL") {
+										league = getLeagueName(game.league[0]);
+									}
+									speech = spreadToSpeech(line, teamParsed, team2.participant_name[0], onTheRoad, league);
+								}
+								result["teamOne"] = teamParsed;
+								result['teamTwo'] = team2.participant_name[0];
+								result['teamOneML'] = team1.odds[0].moneyline;
+								result['teamTwoML'] = team2.odds[0].moneyline;
+								found = true; 
+							}  else if(team2.participant_name[0] === teamParsed) {
+								var onTheRoad = (team2.visiting_home_draw[0] === "Visiting");
+								var line;	
+								if(league === "ALL") {
+									league = getLeagueName(game.league[0]);
+								}							
+								if(onTheRoad) {
+									line = result['line'] = game.period[0].spread[0].spread_visiting[0];
+								} else {
+									line = result['line'] = game.period[0].spread[0].spread_home[0];
+								}
+								if(line === '') {
+									speech = noSpread(teamParsed, team1.participant_name[0], league);
+								} else {
+									speech = spreadToSpeech(line, teamParsed, team1.participant_name[0], onTheRoad, league);
+								}
+								result["teamOne"] = teamParsed;
+								result['teamTwo'] = team1.participant_name[0];
+								result['teamOneML'] = team2.odds[0].moneyline;
+								result['teamTwoML'] = team1.odds[0].moneyline;
+								found = true;
+							} // TODO handle neutral site games
+							else if (DEBUG) { console.log("no match."); }
+							if(found) {
+								result['ou'] = game.period[0].total[0].total_points;
+								if(result['ou'] && result['ou'] != '' && result['ou'] != ' ') {
+									speech += "The over under is " + result['ou'] + " points. ";
+								}
+								if(DEBUG) {
+									console.log("Result", result);
+								}
+								break;
+							}
 						}
-						var team1 = lines.bestlinesports_line_feed.event[i].participant[0];
-						var team2 = lines.bestlinesports_line_feed.event[i].participant[1];	
-						if(team1.participant_name[0] === teamParsed) {
-							var onTheRoad = (team1.visiting_home_draw[0] === "Visiting");
-							var line;								
-							if(onTheRoad) {
-								line = result['line'] = game.period[0].spread[0].spread_visiting[0];
-							} else {
-								line = result['line'] = game.period[0].spread[0].spread_home[0];
-							}
-							if(line === '') {
-								speech = noSpread(teamParsed, team2.participant_name[0], league);
-							} else {
-								if(league === "ALL") {
-									league = getLeagueName(game.league[0]);
-								}
-								speech = spreadToSpeech(line, teamParsed, team2.participant_name[0], onTheRoad, league);
-							}
-							result['teamTwo'] = team2.participant_name[0];
-							result['teamOneML'] = team1.odds[0].moneyline;
-							result['teamTwoML'] = team2.odds[0].moneyline;
-							found = true; 
-						}  else if(team2.participant_name[0] === teamParsed) {
-							var onTheRoad = (team2.visiting_home_draw[0] === "Visiting");
-							var line;								
-							if(onTheRoad) {
-								line = result['line'] = game.period[0].spread[0].spread_visiting[0];
-							} else {
-								if(league === "ALL") {
-									league = getLeagueName(game.league[0]);
-								}
-								line = result['line'] = game.period[0].spread[0].spread_home[0];
-							}
-							if(line === '') {
-								speech = noSpread(teamParsed, team1.participant_name[0], league);
-							} else {
-								speech = spreadToSpeech(line, teamParsed, team1.participant_name[0], onTheRoad, league);
-							}
-							result['teamTwo'] = team1.participant_name[0];
-							result['teamOneML'] = team2.odds[0].moneyline;
-							result['teamTwoML'] = team1.odds[0].moneyline;
-							found = true;
-						} // TODO handle neutral site games
 						if(found) {
-							result['ou'] = game.period[0].total[0].total_points;
-							if(result['ou'] && result['ou'] != '' && result['ou'] != ' ') {
-								speech += "The over under is " + result['ou'] + " points. ";
-							}
-							console.log("Result", result);
-							break;
+							if(DEBUG) { console.log("FOUND MATCH!"); }
+							break; // return the first match
 						}
 					}
 					var card = true;
 					if(!speech) {
-						speech = getCouldntFindOddsError(teamParsed);
+						if(league === "ALL") {
+							speech = getMoreSpecificError(teamOne);
+						} else {
+							speech = getCouldntFindOddsError(teams);
+						}
 						card = false;
 					}
 					self.attributes.lastSearch = result;
 					self.attributes.lastSearch.speech = speech;
-					
 					console.log("Going to return: " + speech, "card=", card);
 					if(!card) {
 						self.emit(":tell", speech);
@@ -633,10 +664,10 @@ function searchByTeamNameIntentHandler() {
 					}
 				}); 
 		}, function() {
-			self.emit(":tell", getCouldntFindTeamError(teamOne));
+			self.emit(":tell", getCouldntFindTeamError(teams));
 		});
 	} else {
-		console.log("Don't have team one to search!");
+		console.error("Don't have team one to search!");
 		this.emit(":ask", HELP_MESSAGE + getGenericHelpMessage());
 	}
 }
@@ -647,7 +678,11 @@ function searchByTeamNameIntentHandler() {
 // =====================================================================================================
 
 function getGenericHelpMessage(){
-	return "For example, you can ask game lines for 'the steelers,' or 'the West Virginia basketball game.'";
+	return "You can ask game lines for any upcoming game, for example 'the steelers,' or more specifically 'the West Virginia basketball game.'";
+}
+
+function getMoreSpecificError(userInput) {
+	return "I couldn't find odds for " + appendThe(userInput) + " game taking place today. Please try again and tell me specifically which sport to search for.";
 }
 
 function getLeagueName(leagueName) {
@@ -662,13 +697,20 @@ function getLeagueName(leagueName) {
 	}
 }
 
-function getCouldntFindOddsError(teamName) {
-	if(!teamName) {
-		teamName = "that team's";
-	} else if(!teamName.toLowerCase().substring(0, 4).includes("the")) {
-		teamName = "the " + teamName;	
+function appendThe(teamName) {
+	if(!teamName.toLowerCase().substring(0, 4).includes("the")) {
+		return "the " + teamName;	
 	}
-	return "I do not have odds for " + teamName + " game yet. Please try again later.";
+	return teamName;
+}
+
+function getCouldntFindOddsError(teams) {
+	if(teams && teams.length >= 1) {
+		return "I do not have odds for " + appendThe(teams[0]["team"]["name"]) + " game yet. Please try again later.";
+	} else {
+		console.error("getCouldntFindOddsError entering with 0 teams!"); // shouldn't ever happen
+		return "I do not have odds for that game yet. Please try again later.";
+	}
 }
 
 function getCouldntFindTeamError(userInput) {
@@ -741,6 +783,8 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 	var teamObj;
 	var league;
 
+	var matches = [];
+
 	if(sportsEvent) {
 		if(sportsEvent.includes("college") || sportsEvent.includes("n. c. a. a.") || sportsEvent.includes("ncaa")) {
 			var ncaa = getNCAATeamName(teamOne);
@@ -753,38 +797,52 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 				} else {
 					league = "ALL";
 				}
+				matches.push(ncaa);
 				teamObj = ncaa;
 			}
 		} else if(sportsEvent.includes("n. f. l.") || sportsEvent.includes("nfl") || sportsEvent.includes("nf l")) {
 			teamObj = getNFLTeamName(teamOne);
-			league = "NFL";
+			if(teamObj) {
+				matches.push(teamObj);
+				league = "NFL";
+			}
 		} else if(sportsEvent.includes("n. b. a.") || sportsEvent.includes("nba") || sportsEvent.includes("nb a")) {
 			teamObj = getNBATeamName(teamOne);
-			league = "NBA";
+			if(teamObj) {
+				matches.push(teamObj);
+				league = "NBA";
+			}
 		} else if(sportsEvent.includes("football")) {
 			// could be NFL or NCAA..
 			teamObj = getNFLTeamName(teamOne);
+			if(teamObj) {
+				matches.push(teamObj);
+			}
 			league = "NFL";
-			if(!teamObj || !teamObj.exactMatch) {
+			if(!teamObj || (teamObj && !teamObj.exactMatch)) {
 				var ncaa = getNCAATeamName(teamOne); // dont override teamObj in case its a non-exact match
 				if(ncaa) {
-					teamObj = ncaa;
-					league = "CFB";
+					matches.push(ncaa);
 				}			
 			}
 		} else if(sportsEvent.includes("basketball")) {
 			// could be NBA or NCAA.
 			teamObj = getNBATeamName(teamOne);
-			league = "NBA";			
-			if(!teamObj) {
+			if(teamObj) {
+				matches.push(teamObj);
+				league = "NBA";	
+			}		
+			if(!teamObj || (teamObj && !teamObj.exactMatch)) {
 				var ncaa = getNCAATeamName(teamOne); // dont override teamObj in case its a non-exact match
 				if(ncaa) {
-					teamObj = ncaa;
-					league = "CFB";
+					matches.push(ncaa);
+					league = "CBB";	
 				}
 			}	
 		} else {
-			console.log("unknown league");
+			if(DEBUG) {
+				console.log("unknown league");
+			}
 		}
 	} else if(teamTwo) {
 		// try NFL first.
@@ -792,18 +850,20 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 		if(t1 && (t1.exactMatch || getNFLTeamName(teamTwo))) {
 			teamObj = t1;
 			league = "NFL";	
+			matches.push(teamObj);
 		} 
 
-		if(!teamObj) {
+		//if(!teamObj) {
 			// try NBA
 			t1 = getNBATeamName(teamOne);
 			if(t1 && (t1.exactMatch || getNBATeamName(teamTwo))) {
 				teamObj = t1;
 				league = "NBA";
+				matches.push(t1);
 			}
-		}
+		//}
 
-		if(!teamObj) {
+		//if(!teamObj) {
 			t1 = getNCAATeamName(teamOne);
 			var t2 = getNCAATeamName(teamTwo);
 			if(t1 &&  t2) {
@@ -814,41 +874,55 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 				} else {
 					league = "ALL";
 				}
+				matches.push(t1);
 			}
-		}
+		//}
 	} else {
-		console.log("1 team name only.");
+		if(DEBUG) {
+			console.log("1 team name only.");
+		}
 		// we only have 1 team name to work with.
 		teamObj = getNFLTeamName(teamOne);
-		if(!teamObj || !teamObj.exactMatch) {
+
+		if(teamObj) {
+			matches.push(teamObj);
+			league = "NFL";
+		}
+
+
+		if(!teamObj || (teamObj && !teamObj.exactMatch)) {
 
 			var ncaa = getNCAATeamName(teamOne);
 			if(ncaa) {
 				teamObj = ncaa;
 				if(teamObj && !teamObj.team.football) {
 					// team doesn't have a football team. must be BB 
-					console.log(teamOne + " is a basketball only school.");
+					if(DEBUG) {
+						console.log(teamOne + " is a basketball only school.");
+					}
 					league = "CBB";
 				} else {
 					league = "ALL";
 				}
-			} else {
-				var nba = getNBATeamName(teamOne);
-				if(!teamObj || nba.exactMatch) { // will not override NFL unless its an exact match!
-					teamObj = nba;
-					league = "NBA";
-				}
+				matches.push(ncaa);
+			} 
+			var nba = getNBATeamName(teamOne);
+			if(nba) { 
+				matches.push(nba);
+				league = "NBA";
 			}
-
-		} else {
-			league = "NFL";
-		}		
+		} 		
 	}
-	if(!teamObj) {
+	if(matches.length === 0) {
 		teamNotFoundCallback();
 		return;
+	} else if(DEBUG && matches.length === 1) {
+		console.log("league", league, "teamObj", matches[0]);
 	} else {
-		console.log("league", league, "teamObj", teamObj);
+		if(DEBUG) {
+			console.log("multiple matches", matches);
+		}
+		league = "ALL";
 	}
 
 	var params = {
@@ -857,8 +931,10 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 	};	
 	s3.getObject(params, function(err, data) {
 		if(err) {
-			console.log(err, err.stack);
-			console.log("getting up to date line info");
+			if(DEBUG) {
+				console.log(err, err.stack);
+			}
+			console.log("getting up to date line info", league);
 			updateOdds(teamObj, league, successCallback);
 		} else {
 			var staleOdds = new Date(data.LastModified);
@@ -867,10 +943,12 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 			if(timestamp > staleOdds) {
 				// odds are HOURS_TO_KEEP_ODDS hours old, update them.
 				console.log("Odds were last updated: " + data.LastModified + ", greater than " + HOURS_TO_KEEP_ODDS + " hours old, updating.");
-				updateOdds(teamObj, league, successCallback);
+				updateOdds(matches, league, successCallback);
 			} else {
-				console.log("Odds were last updated: " + data.LastModified + ", no need to update since it is less than " + HOURS_TO_KEEP_ODDS + " hours old.");
-				successCallback(data.Body.toString('ascii'), teamObj, league);
+				if(DEBUG) {
+					console.log("Odds were last updated: " + data.LastModified + ", no need to update since it is less than " + HOURS_TO_KEEP_ODDS + " hours old.");
+				}
+				successCallback(data.Body.toString('ascii'), matches, league);
 			}
 		}
 	});
@@ -878,7 +956,7 @@ function getAllLines(teamOne, teamTwo, sportsEvent, successCallback, teamNotFoun
 }
 
 function spreadToSpeech(spread, teamOne, teamTwo, teamOneOnTheRoad, league) {
-	console.log("spreadToSpeech", spread);
+	if(DEBUG) { console.log("spreadToSpeech", spread); }
 	var where = teamOneOnTheRoad ? "on the road" : "at home";
 	var singular = (league === "CFB" || league === "CBB");
 
@@ -1172,7 +1250,6 @@ function getNCAATeamName(input) {
 		} else if(i.includes("a and m") || i.includes("a. and m")) {
 			return {team: NCAA_TEAMS["flam"]};
 		} else {
-			console.log("Defaulting to regular ol' Florida", i);
 			return {team: NCAA_TEAMS["fl"]};
 		}
 	} else if(i.includes("fordham")) {
@@ -1203,8 +1280,7 @@ function getNCAATeamName(input) {
 			return {team: NCAA_TEAMS["gatech"]};
 		} else if(i.includes("south")) {
 			return {team: NCAA_TEAMS["gaso"]};
-		} else {
-			console.log("Defaulting to regular ol' Georgia", i);		
+		} else {	
 			return {team: NCAA_TEAMS["ga"]};
 		}
 	} else if(i.includes("gonzaga")) {
@@ -1247,7 +1323,7 @@ function getNCAATeamName(input) {
 		if(i.includes("north")) {
 			return {team: NCAA_TEAMS["niu"]};
 		} else if(i.includes("chicago")) {
-			return {team: NCAA_TEAMS["uci"]};
+			return {team: NCAA_TEAMS["uic"]};
 		} else if(i.includes("east")) {
 			return {team: NCAA_TEAMS["eill"]};
 		} else if(i.includes("state")) {
@@ -1642,7 +1718,6 @@ function getNCAATeamName(input) {
 		} else if(i.includes("south")) {
 			return {team: NCAA_TEAMS["texs"]};
 		} else {
-			console.log("defaulting to regular ol' texas", i);
 			return {team: NCAA_TEAMS["tex"]};
 		}
 	} else if(i.includes("toledo")) {
